@@ -13,8 +13,12 @@
   padding: 24px;
   z-index: 20;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.65), transparent 42%),
-    linear-gradient(180deg, rgba(248, 244, 236, 0.92) 0%, rgba(245, 241, 232, 0.96) 100%);
+    radial-gradient(circle at 16% 38%, rgba(168, 200, 246, 0.74), transparent 33%),
+    radial-gradient(circle at 34% 56%, rgba(198, 220, 252, 0.42), transparent 30%),
+    radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.78), transparent 27%),
+    radial-gradient(circle at 70% 84%, rgba(255, 241, 184, 0.64), transparent 22%),
+    radial-gradient(circle at 84% 46%, rgba(255, 198, 162, 0.58), transparent 34%),
+    linear-gradient(102deg, #d8e6fb 0%, #f6f5f2 56%, #f5d8cc 100%);
   transition:
     opacity 0.55s ease,
     visibility 0s linear 0.55s;
@@ -26,8 +30,16 @@
   pointer-events: none;
 }
 
+.splashStack {
+  display: grid;
+  justify-items: center;
+  gap: 1.2rem;
+}
+
 .splashTitle {
-  width: min(100%, 14ch);
+  display: inline-block;
+  width: auto;
+  max-width: min(100%, 14ch);
   margin: 0;
   text-align: center;
   font-size: clamp(3.5rem, 10vw, 7rem);
@@ -36,23 +48,50 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   background:
-    linear-gradient(120deg, transparent 0%, rgba(255, 214, 173, 0.38) 14%, transparent 28%)
+    linear-gradient(120deg, transparent 0%, rgba(215, 231, 255, 0.42) 14%, transparent 28%)
       0 0 / 220% 100% no-repeat,
-    linear-gradient(180deg, #eff7ff 0%, #c9e0ff 26%, #7fb4ff 54%, #3277eb 76%, #1240b8 100%);
+    linear-gradient(180deg, #eef5ff 0%, #b8d3ff 24%, #6f9df0 50%, #2f68cc 76%, #173d92 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow:
-    0 0 2px rgba(243, 249, 255, 0.2),
-    0.8px 0.8px 0 #d4e8ff,
-    1.6px 1.6px 0 #a9cdff,
-    2.4px 2.4px 0 #6aa6ff,
-    3.2px 3.2px 0 #3779ea,
+    0 0 2px rgba(239, 247, 255, 0.26),
+    0.8px 0.8px 0 #d3e3ff,
+    1.6px 1.6px 0 #9abcf4,
+    2.4px 2.4px 0 #5e90e2,
+    3.2px 3.2px 0 #285dbd,
     4.2px 4.2px 8px rgba(255, 136, 58, 0.22);
   filter:
     drop-shadow(0 0 14px rgba(255, 173, 92, 0.5))
     drop-shadow(0 16px 32px rgba(255, 120, 32, 0.28));
   animation: splashGlowBreath 8.5s ease-in-out infinite;
+}
+
+.splashLoader {
+  position: relative;
+  width: min(100%, 20rem);
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 10px 24px rgba(255, 169, 82, 0.14);
+}
+
+.splashLoaderLine {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34%;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(255, 184, 107, 0) 0%, #ffd4a3 18%, #ff9d47 54%, #ffd8ac 82%, rgba(255, 184, 107, 0) 100%);
+  box-shadow:
+    0 0 12px rgba(255, 162, 82, 0.42),
+    0 0 22px rgba(255, 212, 163, 0.18);
+  animation: splashLoaderSweep 1.9s linear infinite;
+  animation-delay: -0.95s;
+  will-change: transform;
 }
 
 .appShell {
@@ -91,11 +130,11 @@
   0%,
   100% {
     text-shadow:
-      0 0 2px rgba(243, 249, 255, 0.2),
-      0.8px 0.8px 0 #d4e8ff,
-      1.6px 1.6px 0 #a9cdff,
-      2.4px 2.4px 0 #6aa6ff,
-      3.2px 3.2px 0 #3779ea,
+      0 0 2px rgba(239, 247, 255, 0.26),
+      0.8px 0.8px 0 #d3e3ff,
+      1.6px 1.6px 0 #9abcf4,
+      2.4px 2.4px 0 #5e90e2,
+      3.2px 3.2px 0 #285dbd,
       4.2px 4.2px 8px rgba(255, 136, 58, 0.18);
     filter:
       drop-shadow(0 0 10px rgba(255, 173, 92, 0.34))
@@ -104,15 +143,37 @@
 
   50% {
     text-shadow:
-      0 0 2px rgba(243, 249, 255, 0.24),
-      0.8px 0.8px 0 #d4e8ff,
-      1.6px 1.6px 0 #a9cdff,
-      2.4px 2.4px 0 #6aa6ff,
-      3.2px 3.2px 0 #3779ea,
+      0 0 2px rgba(239, 247, 255, 0.3),
+      0.8px 0.8px 0 #d3e3ff,
+      1.6px 1.6px 0 #9abcf4,
+      2.4px 2.4px 0 #5e90e2,
+      3.2px 3.2px 0 #285dbd,
       4.2px 4.2px 16px rgba(255, 136, 58, 0.42);
     filter:
       drop-shadow(0 0 22px rgba(255, 173, 92, 0.72))
       drop-shadow(0 22px 40px rgba(255, 120, 32, 0.34));
+  }
+}
+
+@keyframes splashLoaderSweep {
+  0% {
+    transform: translateX(-140%);
+  }
+
+  18% {
+    transform: translateX(-92%);
+  }
+
+  52% {
+    transform: translateX(132%);
+  }
+
+  82% {
+    transform: translateX(330%);
+  }
+
+  100% {
+    transform: translateX(400%);
   }
 }
 
@@ -143,8 +204,17 @@
   }
 
   .splashTitle {
-    width: min(100%, 10ch);
+    max-width: min(100%, 10ch);
+    transform: none;
     font-size: clamp(3rem, 16vw, 4.75rem);
     letter-spacing: 0.02em;
+  }
+
+  .splashLoader {
+    width: min(100%, 16rem);
+  }
+
+  .splashStack {
+    gap: 1rem;
   }
 }

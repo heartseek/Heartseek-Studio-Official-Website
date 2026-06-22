@@ -1,0 +1,16 @@
+{
+  "brand": {
+    "title": "\u5bfb\u5fc3\u5de5\u4f5c\u5ba4"
+  },
+  "navigation": {
+    "home": "Home",
+    "overview": "Overview",
+    "explore": "Explore",
+    "story": "Story",
+    "contact": "Contact"
+  },
+  "language": {
+    "current": "\u76ee\u524d\u8a9e\u8a00\uff1a{language}",
+    "select": "\u9078\u64c7\u8a9e\u8a00"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "brand": {
+    "title": "Heartseek Studio"
+  },
+  "navigation": {
+    "home": "Home",
+    "overview": "Overview",
+    "explore": "Explore",
+    "story": "Story",
+    "contact": "Contact"
+  },
+  "language": {
+    "current": "Current language: {language}",
+    "select": "Select language"
+  }
+}
