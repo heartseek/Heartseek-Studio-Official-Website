@@ -1,0 +1,32 @@
+.transitionFrame {
+  animation:
+    pageSlideMove 0.74s cubic-bezier(0.22, 1, 0.36, 1),
+    pageFadeIn 0.96s ease-out;
+  will-change: opacity, transform;
+}
+
+@keyframes pageSlideMove {
+  0% {
+    transform: translate3d(-36px, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pageFadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transitionFrame {
+    animation: none;
+  }
+}

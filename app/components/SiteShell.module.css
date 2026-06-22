@@ -1,0 +1,150 @@
+.page {
+  --sidebar-width: 300px;
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 20;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.65), transparent 42%),
+    linear-gradient(180deg, rgba(248, 244, 236, 0.92) 0%, rgba(245, 241, 232, 0.96) 100%);
+  transition:
+    opacity 0.55s ease,
+    visibility 0s linear 0.55s;
+}
+
+.splashHidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splashTitle {
+  width: min(100%, 14ch);
+  margin: 0;
+  text-align: center;
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background:
+    linear-gradient(120deg, transparent 0%, rgba(255, 214, 173, 0.38) 14%, transparent 28%)
+      0 0 / 220% 100% no-repeat,
+    linear-gradient(180deg, #eff7ff 0%, #c9e0ff 26%, #7fb4ff 54%, #3277eb 76%, #1240b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow:
+    0 0 2px rgba(243, 249, 255, 0.2),
+    0.8px 0.8px 0 #d4e8ff,
+    1.6px 1.6px 0 #a9cdff,
+    2.4px 2.4px 0 #6aa6ff,
+    3.2px 3.2px 0 #3779ea,
+    4.2px 4.2px 8px rgba(255, 136, 58, 0.22);
+  filter:
+    drop-shadow(0 0 14px rgba(255, 173, 92, 0.5))
+    drop-shadow(0 16px 32px rgba(255, 120, 32, 0.28));
+  animation: splashGlowBreath 8.5s ease-in-out infinite;
+}
+
+.appShell {
+  position: relative;
+  display: block;
+  height: 100vh;
+  padding: 18px 18px 18px calc(var(--sidebar-width) + 18px);
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition:
+    opacity 0.6s ease,
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.appShellVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.mainPane {
+  height: 100%;
+  padding: 6px 0 40px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mainPane::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes splashGlowBreath {
+  0%,
+  100% {
+    text-shadow:
+      0 0 2px rgba(243, 249, 255, 0.2),
+      0.8px 0.8px 0 #d4e8ff,
+      1.6px 1.6px 0 #a9cdff,
+      2.4px 2.4px 0 #6aa6ff,
+      3.2px 3.2px 0 #3779ea,
+      4.2px 4.2px 8px rgba(255, 136, 58, 0.18);
+    filter:
+      drop-shadow(0 0 10px rgba(255, 173, 92, 0.34))
+      drop-shadow(0 14px 24px rgba(255, 120, 32, 0.18));
+  }
+
+  50% {
+    text-shadow:
+      0 0 2px rgba(243, 249, 255, 0.24),
+      0.8px 0.8px 0 #d4e8ff,
+      1.6px 1.6px 0 #a9cdff,
+      2.4px 2.4px 0 #6aa6ff,
+      3.2px 3.2px 0 #3779ea,
+      4.2px 4.2px 16px rgba(255, 136, 58, 0.42);
+    filter:
+      drop-shadow(0 0 22px rgba(255, 173, 92, 0.72))
+      drop-shadow(0 22px 40px rgba(255, 120, 32, 0.34));
+  }
+}
+
+@media (max-width: 960px) {
+  .page {
+    --sidebar-width: 0px;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .appShell {
+    height: auto;
+    min-height: 100vh;
+    padding-left: 18px;
+  }
+
+  .mainPane {
+    height: auto;
+    overflow: visible;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .appShell {
+    padding: 14px;
+  }
+
+  .splashTitle {
+    width: min(100%, 10ch);
+    font-size: clamp(3rem, 16vw, 4.75rem);
+    letter-spacing: 0.02em;
+  }
+}

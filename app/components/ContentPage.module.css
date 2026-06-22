@@ -1,0 +1,100 @@
+.pageStack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 100vh;
+}
+
+.heroPanel,
+.sectionCard {
+  border: 1px solid rgba(26, 24, 21, 0.1);
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58));
+  box-shadow: 0 24px 80px rgba(52, 42, 31, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.heroPanel {
+  padding: clamp(26px, 4vw, 40px);
+}
+
+.sectionCard {
+  padding: clamp(24px, 3.4vw, 34px);
+}
+
+.eyebrow,
+.sectionLabel {
+  margin: 0;
+  color: #b96528;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.heroLead,
+.sectionTitle {
+  margin: 16px 0 0;
+  color: var(--foreground);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.heroLead {
+  max-width: 14ch;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+}
+
+.sectionTitle {
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+}
+
+.heroCopy,
+.sectionCopy {
+  max-width: 60ch;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.featureCard {
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(26, 24, 21, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.featureCard h4 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+.featureCard p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.64;
+}
+
+@media (max-width: 1080px) {
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroLead {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+}
