@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { HiHome, HiWrenchScrewdriver } from "react-icons/hi2";
+import { LuPanelLeftClose } from "react-icons/lu";
 import styles from "./HomeSidebar.module.css";
 
 type HomeSidebarProps = {
@@ -25,10 +26,11 @@ export default function HomeSidebar({
     activeSection === "tools",
   );
   const [isToolsEnterPending, setIsToolsEnterPending] = useState(false);
+  const [isToolsSidebarDismissed, setIsToolsSidebarDismissed] = useState(false);
   const toolItems = [
     {
       id: "sprite-editor",
-      href: "/tools",
+      href: "/tools/sprite-editor",
       label: t("toolNavigation.spriteEditor"),
     },
   ];
@@ -98,14 +100,27 @@ export default function HomeSidebar({
                   }`}
                   href={item.href}
                   key={item.id}
-                  onClick={() => {
+                  onClick={(event) => {
                     if (item.id === "tools") {
-                      if (activeSection !== "tools") {
+                      if (activeSection === "tools") {
+                        event.preventDefault();
+
+                        if (isToolsSidebarMounted && isToolsSidebarExpanded) {
+                          setIsToolsSidebarDismissed(true);
+                          setIsToolsSidebarExpanded(false);
+                          setIsToolsEnterPending(false);
+                          return;
+                        }
+                      }
+
+                      if (activeSection !== "tools" || isToolsSidebarDismissed) {
+                        setIsToolsSidebarDismissed(false);
                         setIsToolsSidebarMounted(true);
                         setIsToolsSidebarExpanded(false);
                         setIsToolsEnterPending(true);
                       }
                     } else if (activeSection === "tools") {
+                      setIsToolsSidebarDismissed(false);
                       setIsToolsSidebarExpanded(false);
                       setIsToolsEnterPending(false);
                     }
@@ -141,6 +156,18 @@ export default function HomeSidebar({
             >
               <div className={styles.brand}>
                 <p className={styles.sectionTitle}>{t("mainNavigation.tools")}</p>
+                <button
+                  aria-label={t("navigation.collapseTools")}
+                  className={styles.sidebarCloseButton}
+                  onClick={() => {
+                    setIsToolsSidebarDismissed(true);
+                    setIsToolsSidebarExpanded(false);
+                    setIsToolsEnterPending(false);
+                  }}
+                  type="button"
+                >
+                  <LuPanelLeftClose aria-hidden="true" />
+                </button>
               </div>
 
               <nav aria-label={t("mainNavigation.tools")} className={styles.nav}>

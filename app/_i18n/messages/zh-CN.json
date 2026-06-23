@@ -6,7 +6,8 @@
     "home": "Home",
     "overview": "Overview",
     "explore": "Explore",
-    "story": "Story"
+    "story": "Story",
+    "collapseTools": "收起工具侧边栏"
   },
   "mainNavigation": {
     "home": "Home",
@@ -20,8 +21,6 @@
     "title": "精灵图编辑器",
     "description": "把多张序列图按网格合并成一张精灵图，支持拖拽导入、文件夹导入、列数与间距控制，以及实时预览导出。",
     "dropPrompt": "松手即可导入待合成图片",
-    "emptyCanvasTitle": "导入图片后，这里会生成精灵图预览",
-    "emptyCanvasDescription": "支持文件、文件夹、自动排序、列数和间距控制",
     "actions": {
       "export": "导出精灵图",
       "selectFolder": "选择整个文件夹",
@@ -49,7 +48,16 @@
       "eyebrow": "预览信息",
       "maxCell": "最大单元尺寸",
       "rows": "网格行数",
-      "canvasSize": "画布尺寸"
+      "canvasSize": "画布尺寸",
+      "zoom": "预览缩放",
+      "background": "背景颜色",
+      "backgroundPreset": "将预览背景设置为 {color}",
+      "transparent": "透明"
+    },
+    "emptyPreview": {
+      "title": "拖放多张图片或整个文件夹到这里即可导入",
+      "description": "支持一次导入整组序列图。导入后可以直接在预览区拖拽调整顺序，再导出精灵图。",
+      "action": "选择文件"
     },
     "carousel": {
       "ariaLabel": "导入图片轮播",
@@ -69,5 +77,8 @@
   "language": {
     "current": "当前语言：{language}",
     "select": "选择语言"
+  },
+  "feedback": {
+    "email": "发送反馈邮件"
   }
 }

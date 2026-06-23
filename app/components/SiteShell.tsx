@@ -21,7 +21,7 @@ export default function SiteShell({ children }: SiteShellProps) {
   const t = useTranslations();
   const mainPaneRef = useRef<HTMLDivElement>(null);
   const currentTitle = t("brand.title");
-  const activeSection: PrimarySection = pathname === "/tools" ? "tools" : "home";
+  const activeSection: PrimarySection = pathname.startsWith("/tools") ? "tools" : "home";
 
   useEffect(() => {
     const readSplashSeen = () => {

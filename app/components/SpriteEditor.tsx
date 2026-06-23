@@ -1,8 +1,24 @@
 "use client";
 
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import ImageCarousel from "./ImageCarousel";
+import { FaTrashAlt } from "react-icons/fa";
+import { HexAlphaColorPicker } from "react-colorful";
 import styles from "./SpriteEditor.module.css";
 
 type MergeFrame = {
@@ -48,6 +64,16 @@ const MIN_COLUMNS = 1;
 const MAX_COLUMNS = 20;
 const MIN_PADDING = 0;
 const MAX_PADDING = 200;
+const PREVIEW_MAX_WIDTH = 760;
+const PREVIEW_MAX_HEIGHT = 420;
+const TRANSPARENT_PREVIEW_BACKGROUND = "transparent";
+const DEFAULT_PREVIEW_BACKGROUND = "#ebe3d6";
+const PREVIEW_BACKGROUND_PRESETS = [
+  TRANSPARENT_PREVIEW_BACKGROUND,
+  DEFAULT_PREVIEW_BACKGROUND,
+  "#ffffff",
+  "#000000",
+] as const;
 
 export default function SpriteEditor() {
   const t = useTranslations("spriteEditor");
@@ -56,13 +82,26 @@ export default function SpriteEditor() {
   const dragDepthRef = useRef(0);
   const [frames, setFrames] = useState<MergeFrame[]>([]);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
+  const [columnsInput, setColumnsInput] = useState(String(DEFAULT_COLUMNS));
   const [padding, setPadding] = useState(DEFAULT_PADDING);
   const [isDragging, setIsDragging] = useState(false);
-  const [message, setMessage] = useState("");
   const [exportFormat, setExportFormat] = useState<"png" | "jpeg" | "webp">(
     "png",
   );
-  const [previewDataUrl, setPreviewDataUrl] = useState("");
+  const [previewZoom, setPreviewZoom] = useState(100);
+  const [previewBackgroundColor, setPreviewBackgroundColor] = useState<string>(
+    TRANSPARENT_PREVIEW_BACKGROUND,
+  );
+  const [previewPickerColor, setPreviewPickerColor] = useState(
+    `${DEFAULT_PREVIEW_BACKGROUND}ff`,
+  );
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+  );
 
   useEffect(() => {
     framesRef.current = frames;
@@ -100,15 +139,47 @@ export default function SpriteEditor() {
     };
   }, [columns, frames, padding]);
 
-  const carouselItems = useMemo(
+  const previewScale = useMemo(() => {
+    if (frames.length === 0) {
+      return 1;
+    }
+
+    const widthScale =
+      mergedMetrics.canvasWidth > 0
+        ? PREVIEW_MAX_WIDTH / mergedMetrics.canvasWidth
+        : 1;
+    const heightScale =
+      mergedMetrics.canvasHeight > 0
+        ? PREVIEW_MAX_HEIGHT / mergedMetrics.canvasHeight
+        : 1;
+
+    return Math.min(1, widthScale, heightScale) * (previewZoom / 100);
+  }, [
+    frames.length,
+    mergedMetrics.canvasHeight,
+    mergedMetrics.canvasWidth,
+    previewZoom,
+  ]);
+
+  const previewTiles = useMemo(
     () =>
       frames.map((frame) => ({
         id: frame.id,
-        image: frame.url,
-        title: frame.name,
-        subtitle: `${frame.width} x ${frame.height}`,
+        name: frame.name,
+        url: frame.url,
+        width: frame.width,
+        height: frame.height,
       })),
     [frames],
+  );
+
+  const previewCanvasWidth = Math.max(
+    1,
+    Math.round(mergedMetrics.canvasWidth * previewScale),
+  );
+  const previewCanvasHeight = Math.max(
+    1,
+    Math.round(mergedMetrics.canvasHeight * previewScale),
   );
 
   useEffect(() => {
@@ -126,8 +197,10 @@ export default function SpriteEditor() {
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#f7f2e7";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (previewBackgroundColor !== TRANSPARENT_PREVIEW_BACKGROUND) {
+        ctx.fillStyle = previewBackgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
       ctx.strokeStyle = "rgba(93, 75, 49, 0.2)";
       ctx.lineWidth = 3;
       ctx.setLineDash([18, 12]);
@@ -138,7 +211,6 @@ export default function SpriteEditor() {
         canvas.height * 0.64,
       );
       ctx.setLineDash([]);
-      setPreviewDataUrl("");
       return;
     }
 
@@ -151,6 +223,10 @@ export default function SpriteEditor() {
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (previewBackgroundColor !== TRANSPARENT_PREVIEW_BACKGROUND) {
+      ctx.fillStyle = previewBackgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     frames.forEach((frame, index) => {
       const row = Math.floor(index / columns);
@@ -163,10 +239,15 @@ export default function SpriteEditor() {
       ctx.drawImage(frame.image, offsetX, offsetY, frame.width, frame.height);
     });
 
-    setPreviewDataUrl(
-      canvas.toDataURL(getMimeType(exportFormat), getQuality(exportFormat)),
-    );
-  }, [columns, exportFormat, frames, mergedMetrics, padding, t]);
+  }, [
+    columns,
+    exportFormat,
+    frames,
+    mergedMetrics,
+    padding,
+    previewBackgroundColor,
+    t,
+  ]);
 
   async function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     if (event.target.files) {
@@ -180,14 +261,12 @@ export default function SpriteEditor() {
     const incomingFiles = Array.from(fileList);
 
     if (incomingFiles.length === 0) {
-      setMessage(t("messages.noFiles"));
       return;
     }
 
     const imageFiles = incomingFiles.filter(isSupportedImageFile);
 
     if (imageFiles.length === 0) {
-      setMessage(t("messages.unsupported"));
       return;
     }
 
@@ -202,68 +281,63 @@ export default function SpriteEditor() {
       .sort(compareFrameNames);
 
     if (nextFrames.length === 0) {
-      setMessage(t("messages.failed"));
       return;
     }
 
     setFrames((current) => [...current, ...nextFrames].sort(compareFrameNames));
-
-    const skippedCount =
-      incomingFiles.length - imageFiles.length + (imageFiles.length - nextFrames.length);
-
-    setMessage(
-      skippedCount > 0
-        ? t("messages.importedWithSkipped", {
-            imported: nextFrames.length,
-            skipped: skippedCount,
-          })
-        : t("messages.imported", { imported: nextFrames.length }),
-    );
   }
 
   function clearFrames() {
     framesRef.current.forEach((frame) => URL.revokeObjectURL(frame.url));
     framesRef.current = [];
     setFrames([]);
-    setPreviewDataUrl("");
-    setMessage("");
   }
 
   function removeFrame(frameId: string) {
     setFrames((current) => {
-      const target = current.find((frame) => frame.id === frameId);
+      const targetFrame = current.find((frame) => frame.id === frameId);
 
-      if (!target) {
-        return current;
+      if (targetFrame) {
+        URL.revokeObjectURL(targetFrame.url);
       }
 
-      URL.revokeObjectURL(target.url);
       const nextFrames = current.filter((frame) => frame.id !== frameId);
       framesRef.current = nextFrames;
-
-      if (nextFrames.length === 0) {
-        setPreviewDataUrl("");
-        setMessage("");
-      }
-
       return nextFrames;
     });
   }
 
-  function reorderFrames(nextItems: { id: string | number }[]) {
-    setFrames((current) => {
-      const orderMap = new Map(current.map((frame) => [frame.id, frame]));
-      const nextFrames = nextItems
-        .map((item) => orderMap.get(item.id))
-        .filter((frame): frame is MergeFrame => Boolean(frame));
+  function commitColumnsInput(value: string) {
+    const trimmedValue = value.trim();
 
-      if (nextFrames.length !== current.length) {
-        return current;
-      }
+    if (trimmedValue === "") {
+      setColumns(DEFAULT_COLUMNS);
+      setColumnsInput(String(DEFAULT_COLUMNS));
+      return;
+    }
 
-      framesRef.current = nextFrames;
-      return nextFrames;
-    });
+    const nextColumns = clamp(Number(trimmedValue), MIN_COLUMNS, MAX_COLUMNS);
+    setColumns(nextColumns);
+    setColumnsInput(String(nextColumns));
+  }
+
+  function handlePreviewDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = frames.findIndex((frame) => frame.id === active.id);
+    const newIndex = frames.findIndex((frame) => frame.id === over.id);
+
+    if (oldIndex < 0 || newIndex < 0) {
+      return;
+    }
+
+    const nextFrames = arrayMove(frames, oldIndex, newIndex);
+    framesRef.current = nextFrames;
+    setFrames(nextFrames);
   }
 
   function handleDragEnter(event: React.DragEvent<HTMLElement>) {
@@ -312,6 +386,14 @@ export default function SpriteEditor() {
     link.remove();
   }
 
+  function applyPreviewBackgroundColor(color: string) {
+    setPreviewBackgroundColor(color);
+
+    if (color !== TRANSPARENT_PREVIEW_BACKGROUND) {
+      setPreviewPickerColor(color);
+    }
+  }
+
   return (
     <main
       className={styles.page}
@@ -335,13 +417,24 @@ export default function SpriteEditor() {
                 <input
                   max={MAX_COLUMNS}
                   min={MIN_COLUMNS}
-                  onChange={(event) =>
-                    setColumns(
-                      clamp(Number(event.target.value), MIN_COLUMNS, MAX_COLUMNS),
-                    )
-                  }
+                  onBlur={(event) => commitColumnsInput(event.target.value)}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+
+                    if (nextValue === "") {
+                      setColumnsInput("");
+                      return;
+                    }
+
+                    if (!/^\d+$/.test(nextValue)) {
+                      return;
+                    }
+
+                    setColumnsInput(nextValue);
+                    setColumns(clamp(Number(nextValue), MIN_COLUMNS, MAX_COLUMNS));
+                  }}
                   type="number"
-                  value={columns}
+                  value={columnsInput}
                 />
               </label>
 
@@ -395,135 +488,259 @@ export default function SpriteEditor() {
             </div>
           </div>
 
-          <div className={styles.canvasViewport}>
-            <canvas className={styles.canvas} ref={canvasRef} />
-          </div>
-
-          {carouselItems.length > 0 ? (
-            <div className={styles.carouselSection}>
-              <ImageCarousel
-                ariaLabel={t("carousel.ariaLabel")}
-                imageHeight={260}
-                imageWidth={260}
-                items={carouselItems}
-                onReorder={reorderFrames}
-                showSubtitle
-                showTitle
-              />
-            </div>
-          ) : null}
-
-          <div className={styles.infoPanel}>
-            <p className={styles.panelEyebrow}>{t("preview.eyebrow")}</p>
-            <div className={styles.infoGrid}>
-              <InfoCard
-                label={t("preview.maxCell")}
-                value={
-                  frames.length > 0
-                    ? `${mergedMetrics.maxWidth} x ${mergedMetrics.maxHeight}`
-                    : "-"
+          <div className={styles.previewFrame}>
+            <div
+              className={styles.canvasViewport}
+              style={
+                {
+                  backgroundColor: previewBackgroundColor,
+                  ...(frames.length > 0
+                    ? {
+                        width: `${previewCanvasWidth}px`,
+                        height: `${previewCanvasHeight}px`,
+                      }
+                    : {}),
                 }
-              />
-              <InfoCard
-                label={t("preview.rows")}
-                value={String(mergedMetrics.rows || 0)}
-              />
-              <InfoCard
-                label={t("preview.canvasSize")}
-                value={
-                  frames.length > 0
-                    ? `${mergedMetrics.canvasWidth} x ${mergedMetrics.canvasHeight}`
-                    : "-"
-                }
-              />
-            </div>
-
-            {previewDataUrl ? (
-              <a
-                className={styles.previewDownload}
-                download={`sprite-sheet.${exportFormat === "jpeg" ? "jpg" : exportFormat}`}
-                href={previewDataUrl}
-              >
-                {t("actions.downloadPreview")}
-              </a>
-            ) : null}
-          </div>
-        </section>
-
-        <aside className={styles.sidebar}>
-          <div className={styles.sidebarIntro}>
-            <p className={styles.panelEyebrow}>{t("import.eyebrow")}</p>
-            <h2 className={styles.panelTitle}>{t("import.title")}</h2>
-            <p className={styles.panelCopy}>{t("import.description")}</p>
-          </div>
-
-          <div className={styles.sidebarTop}>
-            <label
-              className={`${styles.dropzone} ${
-                isDragging ? styles.dropzoneActive : ""
-              }`}
+              }
             >
-              <input
-                accept="image/*"
-                className={styles.hiddenInput}
-                multiple
-                onChange={handleInputChange}
-                type="file"
-              />
-              <span className={styles.dropzoneTitle}>{t("import.dragTitle")}</span>
-              <span className={styles.dropzoneCopy}>{t("import.dragCopy")}</span>
-            </label>
+              {frames.length === 0 ? (
+                <div className={styles.emptyPreview}>
+                  <p className={styles.emptyPreviewTitle}>{t("emptyPreview.title")}</p>
+                  <p className={styles.emptyPreviewCopy}>{t("emptyPreview.description")}</p>
+                  <label className={styles.emptyPreviewAction}>
+                    <input
+                      accept="image/*"
+                      className={styles.hiddenInput}
+                      multiple
+                      onChange={handleInputChange}
+                      type="file"
+                      {...({ directory: "", webkitdirectory: "" } satisfies DirectoryInputProps)}
+                    />
+                    {t("emptyPreview.action")}
+                  </label>
+                </div>
+              ) : (
+                <DndContext
+                  collisionDetection={closestCenter}
+                  onDragEnd={handlePreviewDragEnd}
+                  sensors={sensors}
+                >
+                  <SortableContext
+                    items={previewTiles.map((tile) => tile.id)}
+                    strategy={rectSortingStrategy}
+                  >
+                    <div
+                      className={styles.previewGrid}
+                      style={
+                        {
+                          "--preview-columns": String(columns),
+                          "--preview-padding": `${padding}px`,
+                          "--preview-cell-width": `${Math.max(
+                            1,
+                            Math.round(mergedMetrics.maxWidth * previewScale),
+                          )}px`,
+                          "--preview-cell-height": `${Math.max(
+                            1,
+                            Math.round(mergedMetrics.maxHeight * previewScale),
+                          )}px`,
+                          "--preview-canvas-width": `${previewCanvasWidth}px`,
+                          "--preview-canvas-height": `${previewCanvasHeight}px`,
+                        } as React.CSSProperties
+                      }
+                    >
+                      {previewTiles.map((tile) => (
+                        <SortablePreviewTile
+                          height={tile.height}
+                          id={tile.id}
+                          imageUrl={tile.url}
+                          key={tile.id}
+                          name={tile.name}
+                          onDelete={removeFrame}
+                          width={tile.width}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              )}
+            </div>
+          </div>
 
-            <div className={styles.sidebarActions}>
-              <label className={styles.secondaryAction}>
+          <div className={styles.zoomBar}>
+            <div className={styles.zoomControls}>
+              <div className={styles.previewControlsColumn}>
+                <label className={styles.zoomLabel} htmlFor="preview-zoom">
+                  <span>{t("preview.zoom")}</span>
+                  <span>{previewZoom}%</span>
+                </label>
                 <input
-                  accept="image/*"
-                  className={styles.hiddenInput}
-                  multiple
-                  onChange={handleInputChange}
-                  type="file"
-                  {...({ directory: "", webkitdirectory: "" } satisfies DirectoryInputProps)}
+                  className={styles.zoomSlider}
+                  id="preview-zoom"
+                  max={200}
+                  min={40}
+                  onChange={(event) => setPreviewZoom(Number(event.target.value))}
+                  type="range"
+                  value={previewZoom}
                 />
-                {t("actions.selectFolder")}
-              </label>
+                <div className={styles.infoPanel}>
+                  <p className={styles.panelEyebrow}>{t("preview.eyebrow")}</p>
+                  <div className={styles.infoGrid}>
+                    <InfoCard
+                      label={t("preview.maxCell")}
+                      value={
+                        frames.length > 0
+                          ? `${mergedMetrics.maxWidth} x ${mergedMetrics.maxHeight}`
+                          : "-"
+                      }
+                    />
+                    <InfoCard
+                      label={t("preview.rows")}
+                      value={String(mergedMetrics.rows || 0)}
+                    />
+                    <InfoCard
+                      label={t("preview.canvasSize")}
+                      value={
+                        frames.length > 0
+                          ? `${mergedMetrics.canvasWidth} x ${mergedMetrics.canvasHeight}`
+                          : "-"
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
 
-              <div className={styles.countBadge}>
-                {t("controls.importedCount")} {frames.length}
+              <div className={styles.previewColorPanel}>
+                <div className={styles.previewColorHeader}>
+                  <span>{t("preview.background")}</span>
+                  <span
+                    aria-hidden="true"
+                    className={`${styles.previewColorCurrent} ${
+                      previewBackgroundColor === TRANSPARENT_PREVIEW_BACKGROUND
+                        ? styles.previewColorTransparent
+                        : ""
+                    }`}
+                    style={
+                      previewBackgroundColor === TRANSPARENT_PREVIEW_BACKGROUND
+                        ? undefined
+                        : { backgroundColor: previewBackgroundColor }
+                    }
+                  />
+                </div>
+
+                <div className={styles.previewColorPresets}>
+                  {PREVIEW_BACKGROUND_PRESETS.map((color) => (
+                    <button
+                      aria-label={t("preview.backgroundPreset", {
+                        color:
+                          color === TRANSPARENT_PREVIEW_BACKGROUND
+                            ? t("preview.transparent")
+                            : color,
+                      })}
+                      className={`${styles.previewColorSwatch} ${
+                        previewBackgroundColor.toLowerCase() === color.toLowerCase()
+                          ? styles.previewColorSwatchActive
+                          : ""
+                      } ${
+                        color === TRANSPARENT_PREVIEW_BACKGROUND
+                          ? styles.previewColorTransparent
+                          : ""
+                      }`}
+                      key={color}
+                      onClick={() => applyPreviewBackgroundColor(color)}
+                      style={
+                        color === TRANSPARENT_PREVIEW_BACKGROUND
+                          ? undefined
+                          : { backgroundColor: color }
+                      }
+                      type="button"
+                    />
+                  ))}
+                </div>
+
+                <div className={styles.previewColorPicker}>
+                  <HexAlphaColorPicker
+                    color={previewPickerColor}
+                    onChange={(color) => applyPreviewBackgroundColor(color)}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {message ? <div className={styles.message}>{message}</div> : null}
-
-          <div className={styles.frameList}>
-            {frames.length === 0 ? (
-              <div className={styles.emptyList}>{t("list.empty")}</div>
-            ) : (
-              frames.map((frame, index) => (
-                <div className={styles.frameCard} key={frame.id}>
-                  <div className={styles.frameRow}>
-                    <div className={styles.frameName}>
-                      {index + 1}. {frame.name}
-                    </div>
-                    <button
-                      aria-label={`${t("actions.delete")} ${frame.name}`}
-                      className={styles.frameDelete}
-                      onClick={() => removeFrame(frame.id)}
-                      type="button"
-                    >
-                      {t("actions.delete")}
-                    </button>
-                  </div>
-                  <div className={styles.frameSize}>
-                    {frame.width} x {frame.height}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </aside>
+          <canvas aria-hidden="true" className={styles.hiddenCanvas} ref={canvasRef} />
+        </section>
       </section>
     </main>
+  );
+}
+
+type SortablePreviewTileProps = {
+  id: string;
+  imageUrl: string;
+  name: string;
+  onDelete: (id: string) => void;
+  width: number;
+  height: number;
+};
+
+function SortablePreviewTile({
+  id,
+  imageUrl,
+  name,
+  onDelete,
+  width,
+  height,
+}: SortablePreviewTileProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+
+  return (
+    <div
+      className={`${styles.previewTile} ${isDragging ? styles.previewTileDragging : ""}`}
+      ref={setNodeRef}
+      role="button"
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: isDragging ? "none" : transition,
+      }}
+      tabIndex={0}
+      {...attributes}
+      {...listeners}
+    >
+      <div className={styles.previewTileInner}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          alt={name}
+          className={styles.previewTileImage}
+          draggable={false}
+          height={height}
+          src={imageUrl}
+          width={width}
+        />
+        <div className={styles.previewTileOverlay}>
+          <button
+            aria-label={`Delete ${name}`}
+            className={styles.previewTileDelete}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onDelete(id);
+            }}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            type="button"
+          >
+            <FaTrashAlt aria-hidden="true" />
+          </button>
+          <div className={styles.previewTileName}>{name}</div>
+          <div className={styles.previewTileMeta}>
+            {width} x {height}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

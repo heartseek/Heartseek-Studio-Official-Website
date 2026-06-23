@@ -6,7 +6,8 @@
     "home": "Home",
     "overview": "Overview",
     "explore": "Explore",
-    "story": "Story"
+    "story": "Story",
+    "collapseTools": "Collapse tools sidebar"
   },
   "mainNavigation": {
     "home": "Home",
@@ -20,8 +21,6 @@
     "title": "Sprite Editor",
     "description": "Merge multiple sequence images into one sprite sheet with drag-and-drop import, folder import, column and padding controls, plus live preview and export.",
     "dropPrompt": "Release to import images for merging",
-    "emptyCanvasTitle": "Your sprite sheet preview will appear here",
-    "emptyCanvasDescription": "Supports files, folders, auto-sorting, columns, and padding control",
     "actions": {
       "export": "Export Sprite Sheet",
       "selectFolder": "Select Folder",
@@ -49,7 +48,16 @@
       "eyebrow": "Preview Info",
       "maxCell": "Largest Cell",
       "rows": "Rows",
-      "canvasSize": "Canvas Size"
+      "canvasSize": "Canvas Size",
+      "zoom": "Preview Zoom",
+      "background": "Background",
+      "backgroundPreset": "Set preview background to {color}",
+      "transparent": "Transparent"
+    },
+    "emptyPreview": {
+      "title": "Drop multiple images or a whole folder here to import",
+      "description": "Import a full image sequence in one go. After importing, you can reorder frames directly in the preview before exporting the sprite sheet.",
+      "action": "Choose files"
     },
     "carousel": {
       "ariaLabel": "Imported image carousel",
@@ -69,5 +77,8 @@
   "language": {
     "current": "Current language: {language}",
     "select": "Select language"
+  },
+  "feedback": {
+    "email": "Send feedback email"
   }
 }

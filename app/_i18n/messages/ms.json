@@ -6,7 +6,8 @@
     "home": "Home",
     "overview": "Overview",
     "explore": "Explore",
-    "story": "Story"
+    "story": "Story",
+    "collapseTools": "Tutup sidebar alat"
   },
   "mainNavigation": {
     "home": "Home",
@@ -20,8 +21,6 @@
     "title": "Penyunting Sprite",
     "description": "Gabungkan banyak imej turutan menjadi satu sprite sheet dengan import seret-lepas, import folder, kawalan lajur dan jarak, serta pratonton dan eksport masa nyata.",
     "dropPrompt": "Lepaskan untuk mengimport imej yang akan digabungkan",
-    "emptyCanvasTitle": "Pratonton sprite sheet akan muncul di sini",
-    "emptyCanvasDescription": "Menyokong fail, folder, susunan automatik, lajur dan kawalan jarak",
     "actions": {
       "export": "Eksport Sprite Sheet",
       "selectFolder": "Pilih Folder",
@@ -49,7 +48,16 @@
       "eyebrow": "Info Pratonton",
       "maxCell": "Saiz Sel Terbesar",
       "rows": "Baris",
-      "canvasSize": "Saiz Kanvas"
+      "canvasSize": "Saiz Kanvas",
+      "zoom": "Zum Pratonton",
+      "background": "Warna Latar",
+      "backgroundPreset": "Tetapkan latar pratonton kepada {color}",
+      "transparent": "Lutsinar"
+    },
+    "emptyPreview": {
+      "title": "Seret banyak imej atau satu folder penuh ke sini untuk import",
+      "description": "Import satu set imej turutan sekali gus. Selepas import, anda boleh susun semula bingkai terus dalam pratonton sebelum mengeksport sprite sheet.",
+      "action": "Pilih fail"
     },
     "carousel": {
       "ariaLabel": "Karusel imej yang diimport",
@@ -69,5 +77,8 @@
   "language": {
     "current": "Bahasa semasa: {language}",
     "select": "Pilih bahasa"
+  },
+  "feedback": {
+    "email": "Hantar e-mel maklum balas"
   }
 }

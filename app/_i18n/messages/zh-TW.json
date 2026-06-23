@@ -6,7 +6,8 @@
     "home": "Home",
     "overview": "Overview",
     "explore": "Explore",
-    "story": "Story"
+    "story": "Story",
+    "collapseTools": "收起工具側邊欄"
   },
   "mainNavigation": {
     "home": "Home",
@@ -20,8 +21,6 @@
     "title": "精靈圖編輯器",
     "description": "把多張序列圖按網格合併成一張精靈圖，支援拖曳匯入、資料夾匯入、列數與間距控制，以及即時預覽匯出。",
     "dropPrompt": "放開即可匯入待合成圖片",
-    "emptyCanvasTitle": "匯入圖片後，這裡會生成精靈圖預覽",
-    "emptyCanvasDescription": "支援檔案、資料夾、自動排序、列數和間距控制",
     "actions": {
       "export": "匯出精靈圖",
       "selectFolder": "選擇整個資料夾",
@@ -49,7 +48,16 @@
       "eyebrow": "預覽資訊",
       "maxCell": "最大單元尺寸",
       "rows": "網格列數",
-      "canvasSize": "畫布尺寸"
+      "canvasSize": "畫布尺寸",
+      "zoom": "預覽縮放",
+      "background": "背景顏色",
+      "backgroundPreset": "將預覽背景設為 {color}",
+      "transparent": "透明"
+    },
+    "emptyPreview": {
+      "title": "拖放多張圖片或整個資料夾到這裡即可匯入",
+      "description": "支援一次匯入整組序列圖。匯入後可以直接在預覽區拖曳調整順序，再匯出精靈圖。",
+      "action": "選擇檔案"
     },
     "carousel": {
       "ariaLabel": "匯入圖片輪播",
@@ -69,5 +77,8 @@
   "language": {
     "current": "目前語言：{language}",
     "select": "選擇語言"
+  },
+  "feedback": {
+    "email": "發送回饋郵件"
   }
 }

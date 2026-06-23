@@ -6,7 +6,6 @@
   padding: 18px;
 }
 
-.sidebar,
 .canvasToolbar,
 .infoPanel {
   border: 1px solid rgba(26, 24, 21, 0.08);
@@ -42,8 +41,7 @@
 
 .exportButton,
 .secondaryAction,
-.tertiaryAction,
-.previewDownload {
+.tertiaryAction {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -72,9 +70,7 @@
 .secondaryAction:hover,
 .secondaryAction:focus-visible,
 .tertiaryAction:hover,
-.tertiaryAction:focus-visible,
-.previewDownload:hover,
-.previewDownload:focus-visible {
+.tertiaryAction:focus-visible {
   transform: translateY(-1px);
   outline: none;
 }
@@ -94,100 +90,20 @@
   gap: 18px;
 }
 
-.sidebar,
 .canvasPanel {
   min-height: 0;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 22px 18px 18px;
-  border-radius: 28px;
-}
-
-.sidebarTop {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: stretch;
-}
-
-.sidebarActions {
-  display: flex;
-  min-width: 200px;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sidebarIntro {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.panelTitle {
-  margin: 0;
-  color: #1f1c18;
-  font-size: 1.65rem;
-  line-height: 1.12;
-}
-
-.panelCopy {
-  margin: 0;
-  color: #645c52;
-  font-size: 0.95rem;
-  line-height: 1.68;
-}
-
-.dropzone {
-  display: flex;
-  min-height: 172px;
-  cursor: pointer;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border: 1px dashed rgba(96, 79, 57, 0.32);
-  border-radius: 24px;
-  background: rgba(250, 246, 238, 0.7);
-  padding: 20px;
-  text-align: center;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.dropzone:hover,
-.dropzone:focus-within,
-.dropzoneActive {
-  border-color: rgba(185, 101, 40, 0.54);
-  background: rgba(255, 241, 226, 0.86);
-  transform: translateY(-1px);
-}
-
-.dropzoneTitle {
-  color: #1f1c18;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.dropzoneCopy {
-  max-width: 26ch;
-  color: #645c52;
-  font-size: 0.92rem;
-  line-height: 1.64;
 }
 
 .hiddenInput {
   display: none;
 }
 
+.hiddenCanvas {
+  display: none;
+}
+
 .secondaryAction,
-.tertiaryAction,
-.previewDownload {
+.tertiaryAction {
   height: 44px;
   border: 1px solid rgba(26, 24, 21, 0.12);
   background: rgba(255, 255, 255, 0.82);
@@ -228,56 +144,6 @@
   min-width: 136px;
 }
 
-.message {
-  border: 1px solid rgba(185, 101, 40, 0.16);
-  border-radius: 20px;
-  background: rgba(255, 243, 231, 0.9);
-  padding: 12px 14px;
-  color: #7b4218;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.controls {
-  display: grid;
-  gap: 14px;
-  border: 1px solid rgba(26, 24, 21, 0.08);
-  border-radius: 24px;
-  background: rgba(246, 240, 231, 0.72);
-  padding: 16px;
-}
-
-.controlHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: #1f1c18;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.countBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid rgba(26, 24, 21, 0.1);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #1f1c18;
-  font-size: 0.92rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.controlGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
 .field {
   display: grid;
   gap: 8px;
@@ -307,96 +173,21 @@
   border-color: rgba(185, 101, 40, 0.55);
 }
 
-.frameList {
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.frameList::-webkit-scrollbar {
-  display: none;
-}
-
-.emptyList,
-.frameCard,
-.infoCard {
-  border: 1px solid rgba(26, 24, 21, 0.08);
-  border-radius: 20px;
+.infoCard,
+.previewTile {
   background: rgba(255, 255, 255, 0.78);
 }
 
-.emptyList {
-  padding: 16px;
-  color: #645c52;
-  font-size: 0.92rem;
-  line-height: 1.64;
-}
-
-.frameCard {
-  padding: 14px 15px;
-}
-
-.frameCard + .frameCard {
-  margin-top: 10px;
-}
-
-.frameRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.frameName {
-  flex: 1 1 auto;
-  color: #1f1c18;
-  font-size: 0.94rem;
-  font-weight: 700;
-  word-break: break-word;
-}
-
-.frameDelete {
-  flex: 0 0 auto;
-  min-width: 52px;
-  border: 1px solid rgba(26, 24, 21, 0.12);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 6px 10px;
-  color: #7b4218;
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.frameDelete:hover,
-.frameDelete:focus-visible {
-  border-color: rgba(185, 101, 40, 0.42);
-  background: rgba(255, 243, 231, 0.9);
-  transform: translateY(-1px);
-  outline: none;
-}
-
-.frameSize {
-  margin-top: 6px;
-  color: #766b5f;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.infoCard {
+  border: 1px solid rgba(26, 24, 21, 0.08);
+  border-radius: 20px;
 }
 
 .canvasPanel {
   display: grid;
   align-content: start;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -409,30 +200,169 @@
 .canvasPanel > .canvasViewport {
   grid-column: 1;
   grid-row: 2;
-  justify-self: stretch;
+  justify-self: center;
 }
 
-.canvasPanel > .infoPanel {
-  grid-column: 2;
+.canvasPanel > .previewFrame {
+  grid-column: 1;
   grid-row: 2;
+  justify-self: center;
+}
+
+.zoomBar {
+  display: grid;
+  gap: 16px;
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.zoomControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  gap: 16px;
+  align-items: start;
+}
+
+.previewControlsColumn {
+  display: grid;
   gap: 16px;
 }
 
-.carouselSection {
+.zoomLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #645c52;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.zoomSlider {
+  width: 100%;
+  accent-color: #b96528;
+  cursor: pointer;
+}
+
+.previewColorPanel {
   display: grid;
-  grid-column: 1 / -1;
-  grid-row: 3;
-  padding-top: 2px;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(26, 24, 21, 0.08);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 24px 80px rgba(52, 42, 31, 0.06);
+  border-radius: 22px;
+}
+
+.previewColorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #645c52;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.previewColorCurrent {
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.previewColorTransparent {
+  background:
+    linear-gradient(45deg, rgba(31, 28, 24, 0.08) 25%, transparent 25%, transparent 75%, rgba(31, 28, 24, 0.08) 75%),
+    linear-gradient(45deg, rgba(31, 28, 24, 0.08) 25%, transparent 25%, transparent 75%, rgba(31, 28, 24, 0.08) 75%);
+  background-position: 0 0, 6px 6px;
+  background-size: 12px 12px;
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
+.previewColorPresets {
+  display: flex;
+  gap: 8px;
+}
+
+.previewColorSwatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(26, 24, 21, 0.14);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.previewColorSwatch:hover,
+.previewColorSwatch:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(185, 101, 40, 0.4);
+  outline: none;
+}
+
+.previewColorSwatchActive {
+  box-shadow:
+    0 0 0 2px rgba(185, 101, 40, 0.2),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.72);
+}
+
+.previewColorPicker :global(.react-colorful) {
+  width: 100%;
+  height: 172px;
+}
+
+.previewColorPicker :global(.react-colorful__saturation) {
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+}
+
+.previewColorPicker :global(.react-colorful__hue) {
+  height: 14px;
+  margin-top: 10px;
+  border-radius: 999px;
+}
+
+.previewColorPicker :global(.react-colorful__alpha) {
+  height: 14px;
+  margin-top: 10px;
+  border-radius: 999px;
+}
+
+.previewColorPicker :global(.react-colorful__interactive) {
+  border-radius: inherit;
+}
+
+.previewFrame {
+  display: flex;
+  width: fit-content;
+  min-width: min(100%, 560px);
+  min-height: 420px;
+  max-width: 100%;
+  align-items: stretch;
+  justify-content: center;
+  background: transparent;
 }
 
 .canvasViewport {
   display: flex;
-  align-self: stretch;
-  min-height: 100%;
+  align-self: center;
   align-items: center;
   justify-content: center;
   width: 100%;
+  height: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: auto;
+  border-radius: 0;
+  background: rgba(235, 227, 214, 0.72);
+  padding: 0;
 }
 
 .canvas {
@@ -443,17 +373,218 @@
   box-shadow: none;
 }
 
+.emptyPreview {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  min-height: 100%;
+  padding: 28px 0;
+  width: min(100%, 440px);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.emptyPreviewTitle {
+  margin: 0;
+  color: #1f1c18;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.emptyPreviewCopy {
+  margin: 0;
+  color: #645c52;
+  font-size: 0.95rem;
+  line-height: 1.72;
+}
+
+.emptyPreviewAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1f1c18;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.emptyPreviewAction:hover,
+.emptyPreviewAction:focus-within {
+  border-color: rgba(185, 101, 40, 0.42);
+  background: rgba(255, 243, 231, 0.9);
+  transform: translateY(-1px);
+}
+
+.previewGrid {
+  --preview-columns: 4;
+  --preview-padding: 0px;
+  --preview-cell-width: 0px;
+  --preview-cell-height: 0px;
+  --preview-canvas-width: 0px;
+  --preview-canvas-height: 0px;
+  display: grid;
+  grid-template-columns: repeat(var(--preview-columns), minmax(0, var(--preview-cell-width)));
+  grid-auto-rows: var(--preview-cell-height);
+  gap: var(--preview-padding);
+  width: var(--preview-canvas-width);
+  min-width: var(--preview-canvas-width);
+  height: var(--preview-canvas-height);
+  min-height: var(--preview-canvas-height);
+  margin: 0;
+}
+
+.previewTile {
+  display: flex;
+  width: var(--preview-cell-width);
+  height: var(--preview-cell-height);
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: grab;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+  will-change: transform;
+}
+
+.previewTile:focus-visible {
+  outline: 2px solid rgba(185, 101, 40, 0.56);
+  outline-offset: 2px;
+}
+
+.previewTileDragging {
+  z-index: 2;
+  cursor: grabbing;
+  opacity: 0.9;
+}
+
+.previewTileInner {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+}
+
+.previewTileImage {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.previewTileOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0);
+  color: transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  pointer-events: none;
+}
+
+.previewTile:hover .previewTileOverlay,
+.previewTile:focus-visible .previewTileOverlay,
+.previewTileDragging .previewTileOverlay {
+  background: rgba(255, 255, 255, 0.56);
+  color: #1f1c18;
+}
+
+.previewTileDelete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1f1c18;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: auto;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.previewTileDelete:hover,
+.previewTileDelete:focus-visible {
+  background: rgba(31, 28, 24, 0.92);
+  color: #fffdf8;
+  outline: none;
+}
+
+.previewTile:hover .previewTileDelete,
+.previewTile:focus-visible .previewTileDelete,
+.previewTileDragging .previewTileDelete {
+  opacity: 1;
+}
+
+.previewTileName {
+  max-width: 100%;
+  font-size: clamp(0.56rem, calc(var(--preview-cell-width) / 14), 0.92rem);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.previewTileMeta {
+  max-width: 100%;
+  font-size: clamp(0.5rem, calc(var(--preview-cell-width) / 16), 0.78rem);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .infoPanel {
   display: grid;
   gap: 14px;
-  align-self: start;
+  width: 100%;
   padding: 18px;
   border-radius: 28px;
 }
 
 .infoGrid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -497,26 +628,12 @@
 }
 
 @media (max-width: 1180px) {
-  .canvasPanel {
-    grid-template-columns: 1fr;
-  }
-
-  .canvasPanel > .canvasViewport,
-  .carouselSection,
-  .canvasPanel > .infoPanel {
+  .canvasPanel > .previewFrame {
     grid-column: 1;
   }
 
-  .canvasPanel > .canvasViewport {
-    grid-row: 2;
-  }
-
-  .canvasPanel > .infoPanel {
-    grid-row: 3;
-  }
-
-  .carouselSection {
-    grid-row: 4;
+  .canvasPanel > .previewFrame {
+    justify-self: stretch;
   }
 
   .frameList {
@@ -529,11 +646,6 @@
     padding: 14px;
   }
 
-  .sidebarTop {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebarActions,
   .toolbarActions,
   .controlsInline {
     width: 100%;
@@ -553,7 +665,26 @@
     width: 100%;
   }
 
-  .canvasViewport {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .zoomControls {
+    grid-template-columns: 1fr;
+  }
+
+  .previewColorPanel {
+    min-width: 0;
+  }
+
+  .previewFrame {
     min-height: 360px;
+  }
+
+  .previewGrid {
+    width: fit-content;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
   }
 }
