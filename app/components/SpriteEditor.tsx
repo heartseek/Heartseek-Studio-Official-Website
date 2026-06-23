@@ -250,6 +250,22 @@ export default function SpriteEditor() {
     });
   }
 
+  function reorderFrames(nextItems: { id: string | number }[]) {
+    setFrames((current) => {
+      const orderMap = new Map(current.map((frame) => [frame.id, frame]));
+      const nextFrames = nextItems
+        .map((item) => orderMap.get(item.id))
+        .filter((frame): frame is MergeFrame => Boolean(frame));
+
+      if (nextFrames.length !== current.length) {
+        return current;
+      }
+
+      framesRef.current = nextFrames;
+      return nextFrames;
+    });
+  }
+
   function handleDragEnter(event: React.DragEvent<HTMLElement>) {
     event.preventDefault();
     dragDepthRef.current += 1;
@@ -390,6 +406,7 @@ export default function SpriteEditor() {
                 imageHeight={260}
                 imageWidth={260}
                 items={carouselItems}
+                onReorder={reorderFrames}
                 showSubtitle
                 showTitle
               />

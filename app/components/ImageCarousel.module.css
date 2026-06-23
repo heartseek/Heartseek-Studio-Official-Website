@@ -66,6 +66,14 @@
   width: var(--card-image-width);
   display: grid;
   gap: 10px;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.cardDragging {
+  z-index: 2;
+  cursor: grabbing;
+  opacity: 0.92;
 }
 
 .imageWrap {

@@ -1,5 +1,20 @@
 "use client";
 
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 import styles from "./ImageCarousel.module.css";
@@ -18,9 +33,8 @@ type ImageCarouselProps = {
   showTitle?: boolean;
   showSubtitle?: boolean;
   ariaLabel?: string;
+  onReorder?: (items: ImageCarouselItem[]) => void;
 };
-
-const CLICK_CANCEL_THRESHOLD = 8;
 
 export default function ImageCarousel({
   items,
@@ -29,44 +43,21 @@ export default function ImageCarousel({
   showTitle = true,
   showSubtitle = true,
   ariaLabel = "Image carousel",
+  onReorder,
 }: ImageCarouselProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const isDraggingRef = useRef(false);
-  const suppressClickRef = useRef(false);
-  const startXRef = useRef(0);
-  const startYRef = useRef(0);
-  const startScrollRef = useRef(0);
-  const pointerIdRef = useRef<number | null>(null);
-  const allowVerticalRef = useRef(false);
-  const velocityRef = useRef(0);
-  const lastMoveXRef = useRef(0);
-  const lastMoveTimeRef = useRef(0);
-  const flingFrameRef = useRef<number | null>(null);
   const scrollFrameRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [shouldCenterTrack, setShouldCenterTrack] = useState(false);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+  );
 
   const hasItems = items.length > 0;
-
-  const startFling = (track: HTMLDivElement) => {
-    if (flingFrameRef.current) {
-      cancelAnimationFrame(flingFrameRef.current);
-    }
-
-    const step = () => {
-      const velocity = velocityRef.current;
-      if (Math.abs(velocity) < 0.05) {
-        flingFrameRef.current = null;
-        return;
-      }
-
-      track.scrollLeft -= velocity;
-      velocityRef.current *= 0.92;
-      flingFrameRef.current = requestAnimationFrame(step);
-    };
-
-    flingFrameRef.current = requestAnimationFrame(step);
-  };
 
   const updateActiveIndex = () => {
     const track = trackRef.current;
@@ -176,9 +167,6 @@ export default function ImageCarousel({
 
     return () => {
       window.removeEventListener("resize", updateCentering);
-      if (flingFrameRef.current) {
-        cancelAnimationFrame(flingFrameRef.current);
-      }
       if (scrollFrameRef.current) {
         cancelAnimationFrame(scrollFrameRef.current);
       }
@@ -187,6 +175,26 @@ export default function ImageCarousel({
 
   if (!hasItems) {
     return null;
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    if (!onReorder) {
+      return;
+    }
+
+    const { active, over } = event;
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = items.findIndex((item) => item.id === active.id);
+    const newIndex = items.findIndex((item) => item.id === over.id);
+
+    if (oldIndex < 0 || newIndex < 0) {
+      return;
+    }
+
+    onReorder(arrayMove(items, oldIndex, newIndex));
   }
 
   return (
@@ -201,154 +209,33 @@ export default function ImageCarousel({
           {"‹"}
         </button>
 
-        <div
-          className={`${styles.track} ${shouldCenterTrack ? styles.trackCentered : ""}`}
-          onPointerDown={(event) => {
-            if (event.pointerType !== "mouse") {
-              return;
-            }
-
-            if (
-              event.target instanceof Element &&
-              event.target.closest("button, a, input, textarea, select")
-            ) {
-              return;
-            }
-
-            const track = trackRef.current;
-            if (!track) {
-              return;
-            }
-
-            isDraggingRef.current = true;
-            suppressClickRef.current = false;
-            startXRef.current = event.clientX;
-            startYRef.current = event.clientY;
-            startScrollRef.current = track.scrollLeft;
-            pointerIdRef.current = event.pointerId;
-            track.setPointerCapture(event.pointerId);
-            allowVerticalRef.current = false;
-            lastMoveXRef.current = event.clientX;
-            lastMoveTimeRef.current = performance.now();
-            velocityRef.current = 0;
-
-            if (flingFrameRef.current) {
-              cancelAnimationFrame(flingFrameRef.current);
-              flingFrameRef.current = null;
-            }
-          }}
-          onPointerLeave={() => {
-            if (!isDraggingRef.current) {
-              return;
-            }
-
-            isDraggingRef.current = false;
-            const track = trackRef.current;
-            if (track) {
-              if (pointerIdRef.current !== null) {
-                track.releasePointerCapture(pointerIdRef.current);
-              }
-              startFling(track);
-            }
-
-            pointerIdRef.current = null;
-            allowVerticalRef.current = false;
-            suppressClickRef.current = false;
-          }}
-          onPointerMove={(event) => {
-            if (!isDraggingRef.current) {
-              return;
-            }
-
-            const track = trackRef.current;
-            if (!track) {
-              return;
-            }
-
-            const deltaX = event.clientX - startXRef.current;
-            const deltaY = event.clientY - startYRef.current;
-
-            if (Math.abs(deltaX) >= CLICK_CANCEL_THRESHOLD) {
-              suppressClickRef.current = true;
-            }
-
-            const now = performance.now();
-            const dx = event.clientX - lastMoveXRef.current;
-            const dt = Math.max(1, now - lastMoveTimeRef.current);
-            lastMoveXRef.current = event.clientX;
-            lastMoveTimeRef.current = now;
-            velocityRef.current = (dx / dt) * 0.7 + velocityRef.current * 0.3;
-
-            if (
-              !allowVerticalRef.current &&
-              Math.abs(deltaY) > Math.abs(deltaX) &&
-              Math.abs(deltaY) > 10
-            ) {
-              allowVerticalRef.current = true;
-              isDraggingRef.current = false;
-              if (pointerIdRef.current !== null) {
-                track.releasePointerCapture(pointerIdRef.current);
-                pointerIdRef.current = null;
-              }
-              return;
-            }
-
-            if (allowVerticalRef.current) {
-              return;
-            }
-
-            event.preventDefault();
-            track.scrollLeft = startScrollRef.current - deltaX;
-          }}
-          onPointerUp={() => {
-            isDraggingRef.current = false;
-            const track = trackRef.current;
-            if (track) {
-              if (pointerIdRef.current !== null) {
-                track.releasePointerCapture(pointerIdRef.current);
-              }
-              startFling(track);
-            }
-
-            pointerIdRef.current = null;
-            allowVerticalRef.current = false;
-            suppressClickRef.current = false;
-          }}
-          onScroll={scheduleActiveUpdate}
-          ref={trackRef}
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
         >
-          {items.map((item) => (
-            <article
-              className={styles.card}
-              key={item.id}
-              style={
-                {
-                  "--card-image-width": `${imageWidth}px`,
-                  "--card-image-height": `${imageHeight}px`,
-                } as React.CSSProperties
-              }
+          <SortableContext
+            items={items.map((item) => item.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div
+              className={`${styles.track} ${shouldCenterTrack ? styles.trackCentered : ""}`}
+              onScroll={scheduleActiveUpdate}
+              ref={trackRef}
             >
-              <div className={styles.imageWrap}>
-                <Image
-                  alt={item.title || item.subtitle || "carousel image"}
-                  className={styles.image}
-                  draggable={false}
-                  fill
-                  sizes={`(max-width: 640px) min(78vw, ${imageWidth}px), ${imageWidth}px`}
-                  src={item.image}
+              {items.map((item) => (
+                <SortableCarouselItem
+                  imageHeight={imageHeight}
+                  imageWidth={imageWidth}
+                  item={item}
+                  key={item.id}
+                  showSubtitle={showSubtitle}
+                  showTitle={showTitle}
                 />
-              </div>
-
-              {showTitle && item.title ? (
-                <div className={styles.title}>{item.title}</div>
-              ) : null}
-
-              {showSubtitle && item.subtitle ? (
-                <div className={styles.subtitle}>{item.subtitle}</div>
-              ) : null}
-            </article>
-          ))}
-        </div>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         <button
           aria-label="Next items"
@@ -373,5 +260,60 @@ export default function ImageCarousel({
         ))}
       </nav>
     </section>
+  );
+}
+
+type SortableCarouselItemProps = {
+  item: ImageCarouselItem;
+  imageWidth: number;
+  imageHeight: number;
+  showTitle: boolean;
+  showSubtitle: boolean;
+};
+
+function SortableCarouselItem({
+  item,
+  imageWidth,
+  imageHeight,
+  showTitle,
+  showSubtitle,
+}: SortableCarouselItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({
+      id: item.id,
+    });
+
+  return (
+    <article
+      className={`${styles.card} ${isDragging ? styles.cardDragging : ""}`}
+      ref={setNodeRef}
+      style={
+        {
+          "--card-image-width": `${imageWidth}px`,
+          "--card-image-height": `${imageHeight}px`,
+          transform: CSS.Transform.toString(transform),
+          transition,
+        } as React.CSSProperties
+      }
+      {...attributes}
+      {...listeners}
+    >
+      <div className={styles.imageWrap}>
+        <Image
+          alt={item.title || item.subtitle || "carousel image"}
+          className={styles.image}
+          draggable={false}
+          fill
+          sizes={`(max-width: 640px) min(78vw, ${imageWidth}px), ${imageWidth}px`}
+          src={item.image}
+        />
+      </div>
+
+      {showTitle && item.title ? <div className={styles.title}>{item.title}</div> : null}
+
+      {showSubtitle && item.subtitle ? (
+        <div className={styles.subtitle}>{item.subtitle}</div>
+      ) : null}
+    </article>
   );
 }
