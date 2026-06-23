@@ -23,6 +23,13 @@
   padding: clamp(24px, 3.4vw, 34px);
 }
 
+.surfacePlain {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
 .eyebrow,
 .sectionLabel {
   margin: 0;

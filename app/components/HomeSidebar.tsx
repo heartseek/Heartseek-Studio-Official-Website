@@ -1,85 +1,88 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { HiHome, HiWrenchScrewdriver } from "react-icons/hi2";
-import type {
-  SiteSidebarGroup,
-  SiteSidebarLink,
-} from "../_config/siteNavigation";
-import { useSiteLocale } from "../_i18n/I18nProvider";
-import {
-  SUPPORTED_SITE_LANGUAGES,
-  getLanguageMeta,
-} from "../_i18n/locales";
 import styles from "./HomeSidebar.module.css";
 
 type HomeSidebarProps = {
   activeSection: PrimarySection;
-  links: SiteSidebarLink[];
-  groups: SiteSidebarGroup[];
-  onSectionChange: (section: PrimarySection) => void;
 };
 
 type PrimarySection = "home" | "tools";
 
 export default function HomeSidebar({
   activeSection,
-  links,
-  groups,
-  onSectionChange,
 }: HomeSidebarProps) {
-  const pathname = usePathname();
   const t = useTranslations();
-  const { locale, setLocale } = useSiteLocale();
-  const [languageMenuPath, setLanguageMenuPath] = useState<string | null>(null);
-  const languageMenuRef = useRef<HTMLDivElement>(null);
-  const isLanguageMenuOpen = languageMenuPath === pathname;
-
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!languageMenuRef.current?.contains(event.target as Node)) {
-        setLanguageMenuPath(null);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setLanguageMenuPath(null);
-      }
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  const activeLanguage = getLanguageMeta(locale);
+  const pathname = usePathname();
+  const [isToolsSidebarMounted, setIsToolsSidebarMounted] = useState(
+    activeSection === "tools",
+  );
+  const [isToolsSidebarExpanded, setIsToolsSidebarExpanded] = useState(
+    activeSection === "tools",
+  );
+  const [isToolsEnterPending, setIsToolsEnterPending] = useState(false);
   const toolItems = [
-    { id: "toolkit", label: t("toolNavigation.toolkit") },
-    { id: "library", label: t("toolNavigation.library") },
+    {
+      id: "sprite-editor",
+      href: "/tools",
+      label: t("toolNavigation.spriteEditor"),
+    },
   ];
   const primaryItems = [
-    { id: "home" as const, icon: HiHome, label: t("mainNavigation.home") },
+    {
+      id: "home" as const,
+      href: "/" as const,
+      icon: HiHome,
+      label: t("mainNavigation.home"),
+    },
     {
       id: "tools" as const,
+      href: "/tools" as const,
       icon: HiWrenchScrewdriver,
       label: t("mainNavigation.tools"),
     },
   ];
+  const isToolsSidebarVisible = isToolsSidebarMounted;
+
+  useEffect(() => {
+    if (activeSection === "tools" && isToolsEnterPending) {
+      const frameId = window.requestAnimationFrame(() => {
+        setIsToolsSidebarExpanded(true);
+        setIsToolsEnterPending(false);
+      });
+
+      return () => {
+        window.cancelAnimationFrame(frameId);
+      };
+    }
+
+    if (
+      activeSection !== "tools" &&
+      isToolsSidebarMounted &&
+      !isToolsSidebarExpanded &&
+      !isToolsEnterPending
+    ) {
+      const timeoutId = window.setTimeout(() => {
+        setIsToolsSidebarMounted(false);
+      }, 420);
+
+      return () => {
+        window.clearTimeout(timeoutId);
+      };
+    }
+  }, [
+    activeSection,
+    isToolsEnterPending,
+    isToolsSidebarExpanded,
+    isToolsSidebarMounted,
+  ]);
 
   return (
     <div className={styles.sidebarFrame}>
-      <div className={styles.brandOutside}>
-        <p className={styles.brandTitle}>{t("brand.title")}</p>
-      </div>
-
       <div className={styles.sidebarCluster}>
         <aside className={styles.primarySidebar}>
           <div className={styles.primaryRail}>
@@ -88,183 +91,78 @@ export default function HomeSidebar({
               const isActive = activeSection === item.id;
 
               return (
-                <button
+                <Link
                   aria-pressed={isActive}
                   className={`${styles.primaryItem} ${
                     isActive ? styles.primaryItemActive : ""
                   }`}
+                  href={item.href}
                   key={item.id}
-                  onClick={() => onSectionChange(item.id)}
-                  type="button"
+                  onClick={() => {
+                    if (item.id === "tools") {
+                      if (activeSection !== "tools") {
+                        setIsToolsSidebarMounted(true);
+                        setIsToolsSidebarExpanded(false);
+                        setIsToolsEnterPending(true);
+                      }
+                    } else if (activeSection === "tools") {
+                      setIsToolsSidebarExpanded(false);
+                      setIsToolsEnterPending(false);
+                    }
+                  }}
                 >
                   <Icon aria-hidden="true" className={styles.primaryIcon} />
                   <span className={styles.primaryLabel}>{item.label}</span>
-                </button>
+                </Link>
               );
             })}
           </div>
         </aside>
 
-        <aside
-          aria-hidden={activeSection === "home"}
-          className={`${styles.sidebar} ${
-            activeSection === "tools" ? styles.sidebarExpanded : styles.sidebarCollapsed
-          }`}
-        >
-          {activeSection === "tools" ? (
-            <div className={styles.brand}>
-              <p className={styles.sectionTitle}>{t("mainNavigation.tools")}</p>
-              <p className={styles.sectionHint}>{t("toolNavigation.description")}</p>
-            </div>
-          ) : null}
-
-          <nav
-            aria-label={
-              activeSection === "home"
-                ? t("navigation.home")
-                : t("mainNavigation.tools")
-            }
-            className={styles.nav}
+        {isToolsSidebarVisible ? (
+          <div
+            className={`${styles.sidebarSlot} ${
+              isToolsSidebarExpanded
+                ? styles.sidebarSlotExpanded
+                : styles.sidebarSlotCollapsed
+            }`}
+            onTransitionEnd={() => {
+              if (activeSection !== "tools" && !isToolsSidebarExpanded) {
+                setIsToolsSidebarMounted(false);
+              }
+            }}
           >
-            {activeSection === "home" ? (
-              <>
+            <aside
+              className={`${styles.sidebar} ${
+                isToolsSidebarExpanded
+                  ? styles.sidebarExpanded
+                  : styles.sidebarCollapsed
+              }`}
+            >
+              <div className={styles.brand}>
+                <p className={styles.sectionTitle}>{t("mainNavigation.tools")}</p>
+              </div>
+
+              <nav aria-label={t("mainNavigation.tools")} className={styles.nav}>
                 <div className={styles.linkStack}>
-                  {links.map((link) => (
+                  {toolItems.map((item) => (
                     <Link
+                      aria-current={pathname === item.href ? "page" : undefined}
                       className={`${styles.navLink} ${
-                        pathname === link.href ? styles.navLinkActive : ""
+                        pathname === item.href ? styles.navLinkActive : ""
                       }`}
-                      href={link.href}
-                      key={link.href}
-                      onClick={() => onSectionChange("home")}
+                      href={item.href}
+                      key={item.id}
                     >
                       <span className={styles.navBullet} aria-hidden="true" />
-                      <span>{t(link.labelKey)}</span>
+                      <span>{item.label}</span>
                     </Link>
                   ))}
                 </div>
-
-                <div className={styles.groupStack}>
-                  {groups.map((group) => {
-                    const hasActiveItem = group.items.some((item) => item.href === pathname);
-                    const isGroupPage = pathname === group.href;
-                    const isOpen = isGroupPage || hasActiveItem;
-                    const groupId = `group-${group.href.replaceAll("/", "-") || "root"}`;
-
-                    return (
-                      <div className={styles.group} key={group.href}>
-                        <Link
-                          className={`${styles.groupButton} ${
-                            isOpen ? styles.groupButtonActive : ""
-                          }`}
-                          href={group.href}
-                          onClick={() => onSectionChange("home")}
-                        >
-                          <span className={styles.groupLabel}>{t(group.labelKey)}</span>
-                          <span
-                            aria-hidden="true"
-                            className={`${styles.groupChevron} ${
-                              isOpen ? styles.groupChevronOpen : ""
-                            }`}
-                          >
-                            v
-                          </span>
-                        </Link>
-
-                        <div
-                          className={`${styles.groupItems} ${
-                            isOpen ? styles.groupItemsOpen : ""
-                          }`}
-                          id={groupId}
-                        >
-                          <div className={styles.groupItemsInner}>
-                            {group.items.map((item) => (
-                              <Link
-                                className={`${styles.groupLink} ${
-                                  pathname === item.href ? styles.groupLinkActive : ""
-                                }`}
-                                href={item.href}
-                                key={item.href}
-                                onClick={() => onSectionChange("home")}
-                              >
-                                {t(item.labelKey)}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              <div className={styles.linkStack}>
-                {toolItems.map((item) => (
-                  <button className={styles.navLink} key={item.id} type="button">
-                    <span className={styles.navBullet} aria-hidden="true" />
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </nav>
-
-          <div className={styles.localeDock} ref={languageMenuRef}>
-            <button
-              aria-expanded={isLanguageMenuOpen}
-              aria-haspopup="listbox"
-              aria-label={t("language.current", { language: activeLanguage.label })}
-              className={`${styles.localeButton} ${
-                isLanguageMenuOpen ? styles.localeButtonOpen : ""
-              }`}
-              onClick={() => {
-                setLanguageMenuPath((value) => (value === pathname ? null : pathname));
-              }}
-              type="button"
-            >
-              <span className={styles.localeButtonCode}>{activeLanguage.shortLabel}</span>
-              <span
-                aria-hidden="true"
-                className={`${styles.localeChevron} ${
-                  isLanguageMenuOpen ? styles.localeChevronOpen : ""
-                }`}
-              >
-                v
-              </span>
-            </button>
-
-            <div
-              aria-label={t("language.select")}
-              className={`${styles.localeMenu} ${
-                isLanguageMenuOpen ? styles.localeMenuOpen : ""
-              }`}
-              role="listbox"
-            >
-              {SUPPORTED_SITE_LANGUAGES.map((language) => {
-                const isActive = locale === language.code;
-
-                return (
-                  <button
-                    aria-selected={isActive}
-                    className={`${styles.localeOption} ${
-                      isActive ? styles.localeOptionActive : ""
-                    }`}
-                    key={language.code}
-                    onClick={() => {
-                      setLocale(language.code);
-                      setLanguageMenuPath(null);
-                    }}
-                    role="option"
-                    type="button"
-                  >
-                    <span className={styles.localeOptionLabel}>{language.nativeLabel}</span>
-                    <span className={styles.localeOptionCode}>{language.shortLabel}</span>
-                  </button>
-                );
-              })}
-            </div>
+              </nav>
+            </aside>
           </div>
-        </aside>
+        ) : null}
       </div>
     </div>
   );

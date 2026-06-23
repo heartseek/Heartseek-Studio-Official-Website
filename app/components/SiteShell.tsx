@@ -3,11 +3,8 @@
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import {
-  directSiteLinks,
-  groupedSiteLinks,
-} from "../_config/siteNavigation";
 import HomeSidebar from "./HomeSidebar";
+import SiteHeader from "./SiteHeader";
 import styles from "./SiteShell.module.css";
 
 type SiteShellProps = {
@@ -20,11 +17,11 @@ const SPLASH_FALLBACK_DURATION_MS = 3000;
 
 export default function SiteShell({ children }: SiteShellProps) {
   const [isSettled, setIsSettled] = useState(false);
-  const [activeSection, setActiveSection] = useState<PrimarySection>("home");
   const pathname = usePathname();
   const t = useTranslations();
   const mainPaneRef = useRef<HTMLDivElement>(null);
   const currentTitle = t("brand.title");
+  const activeSection: PrimarySection = pathname === "/tools" ? "tools" : "home";
 
   useEffect(() => {
     const readSplashSeen = () => {
@@ -125,17 +122,16 @@ export default function SiteShell({ children }: SiteShellProps) {
         </div>
       </div>
 
+      <div className={`${styles.headerShell} ${isSettled ? styles.headerShellVisible : ""}`}>
+        <SiteHeader />
+      </div>
+
       <div
         className={`${styles.appShell} ${
           activeSection === "tools" ? styles.appShellExpanded : styles.appShellCompact
         } ${isSettled ? styles.appShellVisible : ""}`}
       >
-        <HomeSidebar
-          activeSection={activeSection}
-          groups={groupedSiteLinks}
-          links={directSiteLinks}
-          onSectionChange={setActiveSection}
-        />
+        <HomeSidebar activeSection={activeSection} />
         <div className={styles.mainPane} ref={mainPaneRef}>
           {children}
         </div>

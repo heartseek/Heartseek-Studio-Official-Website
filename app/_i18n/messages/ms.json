@@ -6,17 +6,65 @@
     "home": "Home",
     "overview": "Overview",
     "explore": "Explore",
-    "story": "Story",
-    "contact": "Contact"
+    "story": "Story"
   },
   "mainNavigation": {
     "home": "Home",
     "tools": "Tools"
   },
   "toolNavigation": {
-    "toolkit": "Toolkit",
-    "library": "Library",
-    "description": "Ini dulu untuk kategori alat. Langkah seterusnya kita boleh sambungkan ke halaman alat sebenar."
+    "spriteEditor": "Penyunting Sprite"
+  },
+  "spriteEditor": {
+    "eyebrow": "Tools",
+    "title": "Penyunting Sprite",
+    "description": "Gabungkan banyak imej turutan menjadi satu sprite sheet dengan import seret-lepas, import folder, kawalan lajur dan jarak, serta pratonton dan eksport masa nyata.",
+    "dropPrompt": "Lepaskan untuk mengimport imej yang akan digabungkan",
+    "emptyCanvasTitle": "Pratonton sprite sheet akan muncul di sini",
+    "emptyCanvasDescription": "Menyokong fail, folder, susunan automatik, lajur dan kawalan jarak",
+    "actions": {
+      "export": "Eksport Sprite Sheet",
+      "selectFolder": "Pilih Folder",
+      "clear": "Kosongkan Senarai",
+      "delete": "Padam",
+      "downloadPreview": "Muat Turun Pratonton Semasa"
+    },
+    "import": {
+      "eyebrow": "Import",
+      "title": "Senarai Imej",
+      "description": "Fail akan disusun secara semula jadi mengikut nama supaya mudah untuk menggabungkan animasi watak, ekspresi, atau aset UI.",
+      "dragTitle": "Seret imej ke sini",
+      "dragCopy": "Atau klik untuk memilih banyak imej. Folder turutan juga disokong."
+    },
+    "controls": {
+      "importedCount": "Imej Diimport",
+      "columns": "Lajur",
+      "padding": "Jarak",
+      "format": "Format Eksport"
+    },
+    "list": {
+      "empty": "Belum ada imej diimport. Fail dan saiz akan dipaparkan di sini selepas import."
+    },
+    "preview": {
+      "eyebrow": "Info Pratonton",
+      "maxCell": "Saiz Sel Terbesar",
+      "rows": "Baris",
+      "canvasSize": "Saiz Kanvas"
+    },
+    "carousel": {
+      "ariaLabel": "Karusel imej yang diimport",
+      "width": "Lebar Karusel",
+      "height": "Tinggi Karusel",
+      "showTitle": "Tunjuk Tajuk",
+      "showSubtitle": "Tunjuk Subtajuk"
+    },
+    "messages": {
+      "noFiles": "Tiada fail imej dikesan. Seret imej atau folder untuk teruskan.",
+      "unsupported": "Hanya imej PNG, JPG, JPEG, WebP, GIF, BMP, TIF, TIFF, SVG, atau AVIF disokong.",
+      "failed": "Pemuatan imej gagal. Sila cuba set fail yang lain.",
+      "imported": "Berjaya mengimport {imported} imej dan menyusunnya mengikut nama.",
+      "importedWithSkipped": "Berjaya mengimport {imported} imej dan melangkau {skipped} fail yang tidak disokong."
+    }
   },
   "language": {
     "current": "Bahasa semasa: {language}",

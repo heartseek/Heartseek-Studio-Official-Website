@@ -6,17 +6,65 @@
     "home": "Home",
     "overview": "Overview",
     "explore": "Explore",
-    "story": "Story",
-    "contact": "Contact"
+    "story": "Story"
   },
   "mainNavigation": {
     "home": "Home",
     "tools": "Tools"
   },
   "toolNavigation": {
-    "toolkit": "Toolkit",
-    "library": "Library",
-    "description": "Switch tool categories here. We can wire real tool pages into this panel next."
+    "spriteEditor": "Sprite Editor"
+  },
+  "spriteEditor": {
+    "eyebrow": "Tools",
+    "title": "Sprite Editor",
+    "description": "Merge multiple sequence images into one sprite sheet with drag-and-drop import, folder import, column and padding controls, plus live preview and export.",
+    "dropPrompt": "Release to import images for merging",
+    "emptyCanvasTitle": "Your sprite sheet preview will appear here",
+    "emptyCanvasDescription": "Supports files, folders, auto-sorting, columns, and padding control",
+    "actions": {
+      "export": "Export Sprite Sheet",
+      "selectFolder": "Select Folder",
+      "clear": "Clear List",
+      "delete": "Delete",
+      "downloadPreview": "Download Current Preview"
+    },
+    "import": {
+      "eyebrow": "Import",
+      "title": "Image List",
+      "description": "Files are naturally sorted by name, making it easy to merge character animations, expressions, or UI sprite assets.",
+      "dragTitle": "Drop images here",
+      "dragCopy": "Or click to select multiple images. Sequence folders are supported too."
+    },
+    "controls": {
+      "importedCount": "Imported Images",
+      "columns": "Columns",
+      "padding": "Padding",
+      "format": "Export Format"
+    },
+    "list": {
+      "empty": "No images imported yet. Imported files and sizes will appear here."
+    },
+    "preview": {
+      "eyebrow": "Preview Info",
+      "maxCell": "Largest Cell",
+      "rows": "Rows",
+      "canvasSize": "Canvas Size"
+    },
+    "carousel": {
+      "ariaLabel": "Imported image carousel",
+      "width": "Carousel Width",
+      "height": "Carousel Height",
+      "showTitle": "Show Title",
+      "showSubtitle": "Show Subtitle"
+    },
+    "messages": {
+      "noFiles": "No image files were detected. Drop images or a folder to continue.",
+      "unsupported": "Only PNG, JPG, JPEG, WebP, GIF, BMP, TIF, TIFF, SVG, or AVIF images are supported.",
+      "failed": "Image loading failed. Please try another set of files.",
+      "imported": "Imported {imported} images and sorted them by name.",
+      "importedWithSkipped": "Imported {imported} images and skipped {skipped} unsupported files."
+    }
   },
   "language": {
     "current": "Current language: {language}",

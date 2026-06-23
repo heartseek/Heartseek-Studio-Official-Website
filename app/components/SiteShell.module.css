@@ -95,28 +95,35 @@
   will-change: transform;
 }
 
-.appShell {
-  position: relative;
-  display: block;
-  height: 100vh;
-  padding-top: 18px;
-  padding-right: 18px;
-  padding-bottom: 18px;
+.headerShell {
+  position: fixed;
+  inset: 18px 18px auto 18px;
+  z-index: 14;
   opacity: 0;
   transform: translateY(20px);
   pointer-events: none;
   transition:
-    padding-left 0.42s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.6s ease,
     transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.appShellCompact {
-  padding-left: calc(var(--sidebar-width-compact) + 18px);
+.headerShellVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
-.appShellExpanded {
-  padding-left: calc(var(--sidebar-width-expanded) + 18px);
+.appShell {
+  position: fixed;
+  inset: 72px 18px 8px 18px;
+  display: flex;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition:
+    opacity 0.6s ease,
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .appShellVisible {
@@ -126,8 +133,14 @@
 }
 
 .mainPane {
-  height: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 6px 0 40px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58));
+  border-radius: 30px;
+  box-shadow: 0 24px 80px rgba(52, 42, 31, 0.08);
+  backdrop-filter: blur(16px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -191,28 +204,39 @@
 
 @media (max-width: 960px) {
   .page {
-    --sidebar-width: 0px;
-    height: auto;
+    height: 100vh;
     min-height: 100vh;
-    overflow: visible;
+    overflow: hidden;
+  }
+
+  .headerShell {
+    position: fixed;
+    inset: 18px 18px auto 18px;
   }
 
   .appShell {
-    height: auto;
-    min-height: 100vh;
-    padding-left: 18px;
+    position: fixed;
+    inset: 68px 18px 18px 18px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .mainPane {
-    height: auto;
-    overflow: visible;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding-top: 0;
   }
 }
 
 @media (max-width: 640px) {
+  .headerShell {
+    inset: 14px 14px auto 14px;
+  }
+
   .appShell {
-    padding: 14px;
+    inset: 62px 14px 14px 14px;
   }
 
   .splashTitle {

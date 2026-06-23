@@ -1,0 +1,559 @@
+.page {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+}
+
+.sidebar,
+.canvasToolbar,
+.infoPanel {
+  border: 1px solid rgba(26, 24, 21, 0.08);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 24px 80px rgba(52, 42, 31, 0.06);
+}
+
+.eyebrow,
+.panelEyebrow {
+  margin: 0;
+  color: #b96528;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 14px 0 0;
+  color: #1f1c18;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.description {
+  max-width: 64ch;
+  margin: 14px 0 0;
+  color: #645c52;
+  font-size: 0.98rem;
+  line-height: 1.72;
+}
+
+.exportButton,
+.secondaryAction,
+.tertiaryAction,
+.previewDownload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.exportButton {
+  min-width: 168px;
+  height: 48px;
+  padding: 0 22px;
+  border: 0;
+  background: #1f1c18;
+  color: #fffdf8;
+}
+
+.exportButton:hover,
+.exportButton:focus-visible,
+.secondaryAction:hover,
+.secondaryAction:focus-visible,
+.tertiaryAction:hover,
+.tertiaryAction:focus-visible,
+.previewDownload:hover,
+.previewDownload:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.exportButton:disabled,
+.tertiaryAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  transform: none;
+}
+
+.layout {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.sidebar,
+.canvasPanel {
+  min-height: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 18px 18px;
+  border-radius: 28px;
+}
+
+.sidebarTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.sidebarActions {
+  display: flex;
+  min-width: 200px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebarIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panelTitle {
+  margin: 0;
+  color: #1f1c18;
+  font-size: 1.65rem;
+  line-height: 1.12;
+}
+
+.panelCopy {
+  margin: 0;
+  color: #645c52;
+  font-size: 0.95rem;
+  line-height: 1.68;
+}
+
+.dropzone {
+  display: flex;
+  min-height: 172px;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed rgba(96, 79, 57, 0.32);
+  border-radius: 24px;
+  background: rgba(250, 246, 238, 0.7);
+  padding: 20px;
+  text-align: center;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.dropzone:hover,
+.dropzone:focus-within,
+.dropzoneActive {
+  border-color: rgba(185, 101, 40, 0.54);
+  background: rgba(255, 241, 226, 0.86);
+  transform: translateY(-1px);
+}
+
+.dropzoneTitle {
+  color: #1f1c18;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.dropzoneCopy {
+  max-width: 26ch;
+  color: #645c52;
+  font-size: 0.92rem;
+  line-height: 1.64;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.secondaryAction,
+.tertiaryAction,
+.previewDownload {
+  height: 44px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  color: #1f1c18;
+}
+
+.secondaryAction,
+.tertiaryAction {
+  width: 100%;
+}
+
+.canvasToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 28px;
+}
+
+.controlsInline {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.toolbarActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+.toolbarActions .tertiaryAction,
+.toolbarActions .exportButton {
+  width: auto;
+  min-width: 136px;
+}
+
+.message {
+  border: 1px solid rgba(185, 101, 40, 0.16);
+  border-radius: 20px;
+  background: rgba(255, 243, 231, 0.9);
+  padding: 12px 14px;
+  color: #7b4218;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.controls {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(26, 24, 21, 0.08);
+  border-radius: 24px;
+  background: rgba(246, 240, 231, 0.72);
+  padding: 16px;
+}
+
+.controlHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #1f1c18;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(26, 24, 21, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1f1c18;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.controlGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  color: #645c52;
+  font-size: 0.9rem;
+}
+
+.field span {
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  height: 44px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 14px;
+  color: #1f1c18;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: rgba(185, 101, 40, 0.55);
+}
+
+.frameList {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.frameList::-webkit-scrollbar {
+  display: none;
+}
+
+.emptyList,
+.frameCard,
+.infoCard {
+  border: 1px solid rgba(26, 24, 21, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.emptyList {
+  padding: 16px;
+  color: #645c52;
+  font-size: 0.92rem;
+  line-height: 1.64;
+}
+
+.frameCard {
+  padding: 14px 15px;
+}
+
+.frameCard + .frameCard {
+  margin-top: 10px;
+}
+
+.frameRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.frameName {
+  flex: 1 1 auto;
+  color: #1f1c18;
+  font-size: 0.94rem;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.frameDelete {
+  flex: 0 0 auto;
+  min-width: 52px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 6px 10px;
+  color: #7b4218;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.frameDelete:hover,
+.frameDelete:focus-visible {
+  border-color: rgba(185, 101, 40, 0.42);
+  background: rgba(255, 243, 231, 0.9);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.frameSize {
+  margin-top: 6px;
+  color: #766b5f;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.canvasPanel {
+  display: grid;
+  align-content: start;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.canvasPanel > .canvasToolbar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.canvasPanel > .canvasViewport {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: stretch;
+}
+
+.canvasPanel > .infoPanel {
+  grid-column: 2;
+  grid-row: 2;
+  gap: 16px;
+}
+
+.carouselSection {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  padding-top: 2px;
+}
+
+.canvasViewport {
+  display: flex;
+  align-self: stretch;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: auto;
+}
+
+.canvas {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  border-radius: 28px;
+  box-shadow: none;
+}
+
+.infoPanel {
+  display: grid;
+  gap: 14px;
+  align-self: start;
+  padding: 18px;
+  border-radius: 28px;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoCard {
+  padding: 14px;
+}
+
+.infoLabel {
+  color: #766b5f;
+  font-size: 0.84rem;
+}
+
+.infoValue {
+  margin-top: 8px;
+  color: #1f1c18;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.dragOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 10px solid rgba(185, 101, 40, 0.82);
+  background: rgba(255, 245, 233, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.dragCard {
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 20px 24px;
+  color: #1f1c18;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 18px 44px rgba(52, 42, 31, 0.16);
+}
+
+@media (max-width: 1180px) {
+  .canvasPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .canvasPanel > .canvasViewport,
+  .carouselSection,
+  .canvasPanel > .infoPanel {
+    grid-column: 1;
+  }
+
+  .canvasPanel > .canvasViewport {
+    grid-row: 2;
+  }
+
+  .canvasPanel > .infoPanel {
+    grid-row: 3;
+  }
+
+  .carouselSection {
+    grid-row: 4;
+  }
+
+  .frameList {
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 800px) {
+  .page {
+    padding: 14px;
+  }
+
+  .sidebarTop {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebarActions,
+  .toolbarActions,
+  .controlsInline {
+    width: 100%;
+  }
+
+  .toolbarActions {
+    flex-direction: column;
+  }
+
+  .carouselControls {
+    align-items: stretch;
+  }
+
+  .toolbarActions .tertiaryAction,
+  .toolbarActions .exportButton,
+  .field {
+    width: 100%;
+  }
+
+  .canvasViewport {
+    min-height: 360px;
+  }
+}

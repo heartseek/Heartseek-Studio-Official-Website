@@ -2,8 +2,7 @@ export type SiteNavigationLabelKey =
   | "navigation.home"
   | "navigation.overview"
   | "navigation.explore"
-  | "navigation.story"
-  | "navigation.contact";
+  | "navigation.story";
 
 export type SiteSidebarLink = {
   labelKey: SiteNavigationLabelKey;
@@ -25,9 +24,6 @@ export const groupedSiteLinks: SiteSidebarGroup[] = [
   {
     labelKey: "navigation.explore",
     href: "/explore",
-    items: [
-      { labelKey: "navigation.story", href: "/story" },
-      { labelKey: "navigation.contact", href: "/contact" },
-    ],
+    items: [{ labelKey: "navigation.story", href: "/story" }],
   },
 ];

@@ -1,25 +1,73 @@
 {
   "brand": {
-    "title": "\u5bfb\u5fc3\u5de5\u4f5c\u5ba4"
+    "title": "寻心工作室"
   },
   "navigation": {
     "home": "Home",
     "overview": "Overview",
     "explore": "Explore",
-    "story": "Story",
-    "contact": "Contact"
+    "story": "Story"
   },
   "mainNavigation": {
     "home": "Home",
     "tools": "Tools"
   },
   "toolNavigation": {
-    "toolkit": "Toolkit",
-    "library": "Library",
-    "description": "这里先放工具分类入口，下一步可以继续接上真实工具页面。"
+    "spriteEditor": "精灵图编辑器"
+  },
+  "spriteEditor": {
+    "eyebrow": "Tools",
+    "title": "精灵图编辑器",
+    "description": "把多张序列图按网格合并成一张精灵图，支持拖拽导入、文件夹导入、列数与间距控制，以及实时预览导出。",
+    "dropPrompt": "松手即可导入待合成图片",
+    "emptyCanvasTitle": "导入图片后，这里会生成精灵图预览",
+    "emptyCanvasDescription": "支持文件、文件夹、自动排序、列数和间距控制",
+    "actions": {
+      "export": "导出精灵图",
+      "selectFolder": "选择整个文件夹",
+      "clear": "清空列表",
+      "delete": "删除",
+      "downloadPreview": "直接下载当前预览"
+    },
+    "import": {
+      "eyebrow": "导入",
+      "title": "图片列表",
+      "description": "会按文件名自然排序，方便直接合成角色动作、表情或 UI 资源精灵图。",
+      "dragTitle": "把图片拖到这里",
+      "dragCopy": "或点击选择多张图片，支持序列图与整个文件夹拖入。"
+    },
+    "controls": {
+      "importedCount": "已导入图片",
+      "columns": "列数",
+      "padding": "间距",
+      "format": "导出格式"
+    },
+    "list": {
+      "empty": "还没有导入图片。导入后会在这里显示排序结果和尺寸。"
+    },
+    "preview": {
+      "eyebrow": "预览信息",
+      "maxCell": "最大单元尺寸",
+      "rows": "网格行数",
+      "canvasSize": "画布尺寸"
+    },
+    "carousel": {
+      "ariaLabel": "导入图片轮播",
+      "width": "轮播宽度",
+      "height": "轮播高度",
+      "showTitle": "显示标题",
+      "showSubtitle": "显示子标题"
+    },
+    "messages": {
+      "noFiles": "没有读取到图片文件，请拖入图片或文件夹。",
+      "unsupported": "只支持导入 PNG、JPG、JPEG、WebP、GIF、BMP、TIF、TIFF、SVG 或 AVIF 图片。",
+      "failed": "图片读取失败，请换一组文件再试。",
+      "imported": "已导入 {imported} 张图片，并按名称排序。",
+      "importedWithSkipped": "已导入 {imported} 张图片，跳过 {skipped} 个无法使用的文件。"
+    }
   },
   "language": {
-    "current": "\u5f53\u524d\u8bed\u8a00\uff1a{language}",
-    "select": "\u9009\u62e9\u8bed\u8a00"
+    "current": "当前语言：{language}",
+    "select": "选择语言"
   }
 }

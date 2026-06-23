@@ -1,0 +1,140 @@
+.carousel {
+  display: grid;
+  gap: 14px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.navButton {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1f1c18;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.navButton:hover,
+.navButton:focus-visible {
+  border-color: rgba(185, 101, 40, 0.36);
+  background: rgba(255, 243, 231, 0.92);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 6px 2px 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.trackCentered {
+  justify-content: center;
+}
+
+.track:active {
+  cursor: grabbing;
+}
+
+.card {
+  --card-image-width: 280px;
+  --card-image-height: 280px;
+  flex: 0 0 auto;
+  width: var(--card-image-width);
+  display: grid;
+  gap: 10px;
+}
+
+.imageWrap {
+  position: relative;
+  width: var(--card-image-width);
+  height: var(--card-image-height);
+  overflow: hidden;
+  border: 1px solid rgba(26, 24, 21, 0.08);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.98), rgba(243, 235, 221, 0.92));
+  box-shadow: 0 18px 36px rgba(52, 42, 31, 0.08);
+}
+
+.image {
+  object-fit: contain;
+}
+
+.title {
+  color: #1f1c18;
+  font-size: 0.96rem;
+  font-weight: 700;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.subtitle {
+  color: #766b5f;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(26, 24, 21, 0.18);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.dot:hover,
+.dot:focus-visible {
+  transform: scale(1.1);
+  outline: none;
+}
+
+.dotActive {
+  background: #b96528;
+}
+
+@media (max-width: 800px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .navButtonLeft,
+  .navButtonRight {
+    display: none;
+  }
+}
