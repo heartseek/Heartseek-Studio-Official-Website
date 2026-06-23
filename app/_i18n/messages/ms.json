@@ -9,6 +9,15 @@
     "story": "Story",
     "contact": "Contact"
   },
+  "mainNavigation": {
+    "home": "Home",
+    "tools": "Tools"
+  },
+  "toolNavigation": {
+    "toolkit": "Toolkit",
+    "library": "Library",
+    "description": "Ini dulu untuk kategori alat. Langkah seterusnya kita boleh sambungkan ke halaman alat sebenar."
+  },
   "language": {
     "current": "Bahasa semasa: {language}",
     "select": "Pilih bahasa"

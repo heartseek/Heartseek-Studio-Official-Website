@@ -9,6 +9,15 @@
     "story": "Story",
     "contact": "Contact"
   },
+  "mainNavigation": {
+    "home": "Home",
+    "tools": "Tools"
+  },
+  "toolNavigation": {
+    "toolkit": "Toolkit",
+    "library": "Library",
+    "description": "这里先放工具分类入口，下一步可以继续接上真实工具页面。"
+  },
   "language": {
     "current": "\u5f53\u524d\u8bed\u8a00\uff1a{language}",
     "select": "\u9009\u62e9\u8bed\u8a00"

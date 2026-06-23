@@ -9,6 +9,15 @@
     "story": "Story",
     "contact": "Contact"
   },
+  "mainNavigation": {
+    "home": "Home",
+    "tools": "Tools"
+  },
+  "toolNavigation": {
+    "toolkit": "Toolkit",
+    "library": "Library",
+    "description": "Switch tool categories here. We can wire real tool pages into this panel next."
+  },
   "language": {
     "current": "Current language: {language}",
     "select": "Select language"

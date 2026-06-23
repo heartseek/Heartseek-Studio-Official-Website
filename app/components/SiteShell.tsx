@@ -13,12 +13,14 @@ import styles from "./SiteShell.module.css";
 type SiteShellProps = {
   children: React.ReactNode;
 };
+type PrimarySection = "home" | "tools";
 
 const SPLASH_MIN_DURATION_MS = 2000;
 const SPLASH_FALLBACK_DURATION_MS = 3000;
 
 export default function SiteShell({ children }: SiteShellProps) {
   const [isSettled, setIsSettled] = useState(false);
+  const [activeSection, setActiveSection] = useState<PrimarySection>("home");
   const pathname = usePathname();
   const t = useTranslations();
   const mainPaneRef = useRef<HTMLDivElement>(null);
@@ -124,9 +126,16 @@ export default function SiteShell({ children }: SiteShellProps) {
       </div>
 
       <div
-        className={`${styles.appShell} ${isSettled ? styles.appShellVisible : ""}`}
+        className={`${styles.appShell} ${
+          activeSection === "tools" ? styles.appShellExpanded : styles.appShellCompact
+        } ${isSettled ? styles.appShellVisible : ""}`}
       >
-        <HomeSidebar links={directSiteLinks} groups={groupedSiteLinks} />
+        <HomeSidebar
+          activeSection={activeSection}
+          groups={groupedSiteLinks}
+          links={directSiteLinks}
+          onSectionChange={setActiveSection}
+        />
         <div className={styles.mainPane} ref={mainPaneRef}>
           {children}
         </div>
