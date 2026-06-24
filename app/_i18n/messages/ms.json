@@ -3,10 +3,6 @@
     "title": "Heartseek Studio"
   },
   "navigation": {
-    "home": "Home",
-    "overview": "Overview",
-    "explore": "Explore",
-    "story": "Story",
     "collapseTools": "Tutup sidebar alat"
   },
   "mainNavigation": {
@@ -14,35 +10,23 @@
     "tools": "Tools"
   },
   "toolNavigation": {
-    "spriteEditor": "Penyunting Sprite"
+    "spriteEditor": "Penyunting Sprite",
+    "spriteEditorMerge": "Gabung",
+    "spriteEditorSplit": "Pisah",
+    "imageEditor": "Penyunting Imej",
+    "imageEditorColorAdjustment": "Pelarasan Warna"
   },
   "spriteEditor": {
-    "eyebrow": "Tools",
-    "title": "Penyunting Sprite",
-    "description": "Gabungkan banyak imej turutan menjadi satu sprite sheet dengan import seret-lepas, import folder, kawalan lajur dan jarak, serta pratonton dan eksport masa nyata.",
     "dropPrompt": "Lepaskan untuk mengimport imej yang akan digabungkan",
     "actions": {
       "export": "Eksport Sprite Sheet",
-      "selectFolder": "Pilih Folder",
       "clear": "Kosongkan Senarai",
-      "delete": "Padam",
-      "downloadPreview": "Muat Turun Pratonton Semasa"
-    },
-    "import": {
-      "eyebrow": "Import",
-      "title": "Senarai Imej",
-      "description": "Fail akan disusun secara semula jadi mengikut nama supaya mudah untuk menggabungkan animasi watak, ekspresi, atau aset UI.",
-      "dragTitle": "Seret imej ke sini",
-      "dragCopy": "Atau klik untuk memilih banyak imej. Folder turutan juga disokong."
+      "delete": "Padam"
     },
     "controls": {
-      "importedCount": "Imej Diimport",
       "columns": "Lajur",
       "padding": "Jarak",
       "format": "Format Eksport"
-    },
-    "list": {
-      "empty": "Belum ada imej diimport. Fail dan saiz akan dipaparkan di sini selepas import."
     },
     "preview": {
       "eyebrow": "Info Pratonton",
@@ -52,26 +36,82 @@
       "zoom": "Zum Pratonton",
       "background": "Warna Latar",
       "backgroundPreset": "Tetapkan latar pratonton kepada {color}",
-      "transparent": "Lutsinar"
+      "transparent": "Lutsinar",
+      "fps": "FPS",
+      "mode": "Mod pratonton",
+      "spriteMode": "Mod sprite sheet",
+      "videoMode": "Pratonton video"
+    },
+    "tabs": {
+      "ariaLabel": "Mod editor sprite",
+      "merge": "Gabung",
+      "split": "Pisah"
+    },
+    "split": {
+      "emptyTitle": "Seret imej ke sini untuk import",
+      "emptyDescription": "Import satu sprite sheet dan pecahkannya mengikut grid, saiz tetap, atau pengesanan kawasan lutsinar secara pintar.",
+      "mode": "Mod Pisah",
+      "modes": {
+        "grid": "Ikut Grid",
+        "size": "Ikut Saiz",
+        "smart": "Pisah Pintar"
+      },
+      "rows": "Baris",
+      "columns": "Lajur",
+      "cellWidth": "Lebar Sel",
+      "cellHeight": "Tinggi Sel",
+      "alphaThreshold": "Ambang Alfa",
+      "minArea": "Luas Minimum",
+      "infoTitle": "Info Pisah",
+      "sliceCount": "Jumlah Potongan",
+      "sourceSize": "Saiz Sumber",
+      "resultsTitle": "Hasil Pisah",
+      "run": "Mula Pisah",
+      "downloadAll": "Muat Turun Semua",
+      "downloadSlice": "Muat turun imej ini",
+      "noSlices": "Tiada potongan yang boleh digunakan ditemui. Cuba ubah tetapan atau import imej lain."
     },
     "emptyPreview": {
       "title": "Seret banyak imej atau satu folder penuh ke sini untuk import",
       "description": "Import satu set imej turutan sekali gus. Selepas import, anda boleh susun semula bingkai terus dalam pratonton sebelum mengeksport sprite sheet.",
       "action": "Pilih fail"
+    }
+  },
+  "imageEditor": {
+    "dropPrompt": "Lepaskan untuk mengimport imej yang akan dilaraskan",
+    "actions": {
+      "reset": "Tetap Semula",
+      "exportAll": "Eksport Semua",
+      "clear": "Kosongkan Senarai"
+    },
+    "controls": {
+      "brightness": "Kecerahan",
+      "contrast": "Kontras",
+      "hue": "Rona"
+    },
+    "preview": {
+      "eyebrow": "Info Pratonton",
+      "imageCount": "Jumlah Imej",
+      "activeSize": "Saiz Semasa",
+      "filter": "Pelarasan Semasa",
+      "original": "Asal",
+      "result": "Hasil",
+      "background": "Warna Latar",
+      "backgroundPreset": "Tetapkan latar pratonton kepada {color}",
+      "transparent": "Lutsinar"
+    },
+    "import": {
+      "eyebrow": "Import",
+      "title": "Senarai Imej",
+      "empty": "Belum ada imej diimport. Selepas import, anda boleh menukar imej pratonton aktif di sini."
+    },
+    "emptyPreview": {
+      "title": "Seret banyak imej atau satu folder penuh ke sini untuk import",
+      "description": "Import secara kelompok, lihat satu demi satu, dan laraskan kecerahan, kontras, serta rona bersama.",
+      "action": "Pilih fail"
     },
     "carousel": {
-      "ariaLabel": "Karusel imej yang diimport",
-      "width": "Lebar Karusel",
-      "height": "Tinggi Karusel",
-      "showTitle": "Tunjuk Tajuk",
-      "showSubtitle": "Tunjuk Subtajuk"
-    },
-    "messages": {
-      "noFiles": "Tiada fail imej dikesan. Seret imej atau folder untuk teruskan.",
-      "unsupported": "Hanya imej PNG, JPG, JPEG, WebP, GIF, BMP, TIF, TIFF, SVG, atau AVIF disokong.",
-      "failed": "Pemuatan imej gagal. Sila cuba set fail yang lain.",
-      "imported": "Berjaya mengimport {imported} imej dan menyusunnya mengikut nama.",
-      "importedWithSkipped": "Berjaya mengimport {imported} imej dan melangkau {skipped} fail yang tidak disokong."
+      "ariaLabel": "Karusel imej yang diimport"
     }
   },
   "language": {

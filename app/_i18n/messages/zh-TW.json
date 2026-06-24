@@ -3,10 +3,6 @@
     "title": "尋心工作室"
   },
   "navigation": {
-    "home": "Home",
-    "overview": "Overview",
-    "explore": "Explore",
-    "story": "Story",
     "collapseTools": "收起工具側邊欄"
   },
   "mainNavigation": {
@@ -14,35 +10,23 @@
     "tools": "Tools"
   },
   "toolNavigation": {
-    "spriteEditor": "精靈圖編輯器"
+    "spriteEditor": "精靈圖編輯器",
+    "spriteEditorMerge": "合併",
+    "spriteEditorSplit": "拆分",
+    "imageEditor": "圖片編輯器",
+    "imageEditorColorAdjustment": "顏色調整"
   },
   "spriteEditor": {
-    "eyebrow": "Tools",
-    "title": "精靈圖編輯器",
-    "description": "把多張序列圖按網格合併成一張精靈圖，支援拖曳匯入、資料夾匯入、列數與間距控制，以及即時預覽匯出。",
     "dropPrompt": "放開即可匯入待合成圖片",
     "actions": {
       "export": "匯出精靈圖",
-      "selectFolder": "選擇整個資料夾",
       "clear": "清空列表",
-      "delete": "刪除",
-      "downloadPreview": "直接下載目前預覽"
-    },
-    "import": {
-      "eyebrow": "匯入",
-      "title": "圖片列表",
-      "description": "會依檔名自然排序，方便直接合成角色動作、表情或 UI 資源精靈圖。",
-      "dragTitle": "把圖片拖到這裡",
-      "dragCopy": "或點擊選擇多張圖片，支援序列圖與整個資料夾拖入。"
+      "delete": "刪除"
     },
     "controls": {
-      "importedCount": "已匯入圖片",
       "columns": "列數",
       "padding": "間距",
       "format": "匯出格式"
-    },
-    "list": {
-      "empty": "還沒有匯入圖片。匯入後會在這裡顯示排序結果和尺寸。"
     },
     "preview": {
       "eyebrow": "預覽資訊",
@@ -52,26 +36,82 @@
       "zoom": "預覽縮放",
       "background": "背景顏色",
       "backgroundPreset": "將預覽背景設為 {color}",
-      "transparent": "透明"
+      "transparent": "透明",
+      "fps": "幹率",
+      "mode": "預覽模式",
+      "spriteMode": "精靈圖模式",
+      "videoMode": "影片預覽"
+    },
+    "tabs": {
+      "ariaLabel": "精靈圖編輯模式",
+      "merge": "合併",
+      "split": "拆分"
+    },
+    "split": {
+      "emptyTitle": "拖放圖片到這裡即可匯入",
+      "emptyDescription": "匯入一張精靈圖後，可以依網格、固定大小或智慧辨識透明區域進行拆分。",
+      "mode": "拆分方式",
+      "modes": {
+        "grid": "依網格",
+        "size": "依大小",
+        "smart": "智慧拆分"
+      },
+      "rows": "列數",
+      "columns": "欄數",
+      "cellWidth": "單元寬度",
+      "cellHeight": "單元高度",
+      "alphaThreshold": "透明門檻",
+      "minArea": "最小面積",
+      "infoTitle": "拆分資訊",
+      "sliceCount": "切片數量",
+      "sourceSize": "原圖尺寸",
+      "resultsTitle": "拆分結果",
+      "run": "開始拆分",
+      "downloadAll": "下載全部",
+      "downloadSlice": "下載這張圖片",
+      "noSlices": "目前沒有可用的切片結果。請調整參數或重新匯入圖片。"
     },
     "emptyPreview": {
       "title": "拖放多張圖片或整個資料夾到這裡即可匯入",
       "description": "支援一次匯入整組序列圖。匯入後可以直接在預覽區拖曳調整順序，再匯出精靈圖。",
       "action": "選擇檔案"
+    }
+  },
+  "imageEditor": {
+    "dropPrompt": "放開即可匯入待調整圖片",
+    "actions": {
+      "reset": "重設參數",
+      "exportAll": "匯出全部",
+      "clear": "清空列表"
+    },
+    "controls": {
+      "brightness": "亮度",
+      "contrast": "對比度",
+      "hue": "色調"
+    },
+    "preview": {
+      "eyebrow": "預覽資訊",
+      "imageCount": "圖片數量",
+      "activeSize": "目前尺寸",
+      "filter": "目前調整",
+      "background": "背景顏色",
+      "backgroundPreset": "將預覽背景設為 {color}",
+      "transparent": "透明",
+      "original": "原圖",
+      "result": "結果"
+    },
+    "import": {
+      "eyebrow": "匯入",
+      "title": "圖片列表",
+      "empty": "還沒有匯入圖片。匯入後可以在這裡切換目前預覽圖。"
+    },
+    "emptyPreview": {
+      "title": "拖放多張圖片或整個資料夾到這裡即可匯入",
+      "description": "支援批次匯入後逐張查看，並統一調整亮度、對比度與色調。",
+      "action": "選擇檔案"
     },
     "carousel": {
-      "ariaLabel": "匯入圖片輪播",
-      "width": "輪播寬度",
-      "height": "輪播高度",
-      "showTitle": "顯示標題",
-      "showSubtitle": "顯示副標題"
-    },
-    "messages": {
-      "noFiles": "沒有讀取到圖片檔案，請拖入圖片或資料夾。",
-      "unsupported": "只支援匯入 PNG、JPG、JPEG、WebP、GIF、BMP、TIF、TIFF、SVG 或 AVIF 圖片。",
-      "failed": "圖片讀取失敗，請換一組檔案再試。",
-      "imported": "已匯入 {imported} 張圖片，並依名稱排序。",
-      "importedWithSkipped": "已匯入 {imported} 張圖片，跳過 {skipped} 個無法使用的檔案。"
+      "ariaLabel": "已導入圖片輪播"
     }
   },
   "language": {

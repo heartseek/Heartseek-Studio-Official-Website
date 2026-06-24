@@ -3,10 +3,6 @@
     "title": "寻心工作室"
   },
   "navigation": {
-    "home": "Home",
-    "overview": "Overview",
-    "explore": "Explore",
-    "story": "Story",
     "collapseTools": "收起工具侧边栏"
   },
   "mainNavigation": {
@@ -14,35 +10,23 @@
     "tools": "Tools"
   },
   "toolNavigation": {
-    "spriteEditor": "精灵图编辑器"
+    "spriteEditor": "精灵图编辑器",
+    "spriteEditorMerge": "合并",
+    "spriteEditorSplit": "拆分",
+    "imageEditor": "图片编辑器",
+    "imageEditorColorAdjustment": "颜色调整"
   },
   "spriteEditor": {
-    "eyebrow": "Tools",
-    "title": "精灵图编辑器",
-    "description": "把多张序列图按网格合并成一张精灵图，支持拖拽导入、文件夹导入、列数与间距控制，以及实时预览导出。",
     "dropPrompt": "松手即可导入待合成图片",
     "actions": {
       "export": "导出精灵图",
-      "selectFolder": "选择整个文件夹",
       "clear": "清空列表",
-      "delete": "删除",
-      "downloadPreview": "直接下载当前预览"
-    },
-    "import": {
-      "eyebrow": "导入",
-      "title": "图片列表",
-      "description": "会按文件名自然排序，方便直接合成角色动作、表情或 UI 资源精灵图。",
-      "dragTitle": "把图片拖到这里",
-      "dragCopy": "或点击选择多张图片，支持序列图与整个文件夹拖入。"
+      "delete": "删除"
     },
     "controls": {
-      "importedCount": "已导入图片",
       "columns": "列数",
       "padding": "间距",
       "format": "导出格式"
-    },
-    "list": {
-      "empty": "还没有导入图片。导入后会在这里显示排序结果和尺寸。"
     },
     "preview": {
       "eyebrow": "预览信息",
@@ -52,26 +36,82 @@
       "zoom": "预览缩放",
       "background": "背景颜色",
       "backgroundPreset": "将预览背景设置为 {color}",
-      "transparent": "透明"
+      "transparent": "透明",
+      "fps": "帧率",
+      "mode": "预览模式",
+      "spriteMode": "精灵图模式",
+      "videoMode": "视频预览"
+    },
+    "tabs": {
+      "ariaLabel": "精灵图编辑模式",
+      "merge": "合并",
+      "split": "拆分"
+    },
+    "split": {
+      "emptyTitle": "拖放图片到这里即可导入",
+      "emptyDescription": "导入一张精灵图后，可以按网格、按固定大小或智能识别透明区域进行拆分。",
+      "mode": "拆分方式",
+      "modes": {
+        "grid": "按网格",
+        "size": "按大小",
+        "smart": "智能拆分"
+      },
+      "rows": "行数",
+      "columns": "列数",
+      "cellWidth": "单元宽度",
+      "cellHeight": "单元高度",
+      "alphaThreshold": "透明阈值",
+      "minArea": "最小面积",
+      "infoTitle": "拆分信息",
+      "sliceCount": "切片数量",
+      "sourceSize": "原图尺寸",
+      "resultsTitle": "拆分结果",
+      "run": "开始拆分",
+      "downloadAll": "下载全部",
+      "downloadSlice": "下载这张图片",
+      "noSlices": "当前没有可用的切片结果。请调整参数或重新导入图片。"
     },
     "emptyPreview": {
       "title": "拖放多张图片或整个文件夹到这里即可导入",
       "description": "支持一次导入整组序列图。导入后可以直接在预览区拖拽调整顺序，再导出精灵图。",
       "action": "选择文件"
+    }
+  },
+  "imageEditor": {
+    "dropPrompt": "松手即可导入待调整图片",
+    "actions": {
+      "reset": "重置参数",
+      "exportAll": "导出全部",
+      "clear": "清空列表"
+    },
+    "controls": {
+      "brightness": "亮度",
+      "contrast": "对比度",
+      "hue": "色调"
+    },
+    "preview": {
+      "eyebrow": "预览信息",
+      "imageCount": "图片数量",
+      "activeSize": "当前尺寸",
+      "filter": "当前调整",
+      "background": "背景颜色",
+      "backgroundPreset": "将预览背景设置为 {color}",
+      "transparent": "透明",
+      "original": "原图",
+      "result": "结果"
+    },
+    "import": {
+      "eyebrow": "导入",
+      "title": "图片列表",
+      "empty": "还没有导入图片。导入后可以在这里切换当前预览图。"
+    },
+    "emptyPreview": {
+      "title": "拖放多张图片或整个文件夹到这里即可导入",
+      "description": "支持批量导入后逐张查看，并统一调节亮度、对比度与色调。",
+      "action": "选择文件"
     },
     "carousel": {
-      "ariaLabel": "导入图片轮播",
-      "width": "轮播宽度",
-      "height": "轮播高度",
-      "showTitle": "显示标题",
-      "showSubtitle": "显示子标题"
-    },
-    "messages": {
-      "noFiles": "没有读取到图片文件，请拖入图片或文件夹。",
-      "unsupported": "只支持导入 PNG、JPG、JPEG、WebP、GIF、BMP、TIF、TIFF、SVG 或 AVIF 图片。",
-      "failed": "图片读取失败，请换一组文件再试。",
-      "imported": "已导入 {imported} 张图片，并按名称排序。",
-      "importedWithSkipped": "已导入 {imported} 张图片，跳过 {skipped} 个无法使用的文件。"
+      "ariaLabel": "已导入图片轮播"
     }
   },
   "language": {

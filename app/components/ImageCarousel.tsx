@@ -1,20 +1,5 @@
 "use client";
 
-import {
-  DndContext,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  horizontalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 import styles from "./ImageCarousel.module.css";
@@ -33,7 +18,8 @@ type ImageCarouselProps = {
   showTitle?: boolean;
   showSubtitle?: boolean;
   ariaLabel?: string;
-  onReorder?: (items: ImageCarouselItem[]) => void;
+  activeId?: string | number | null;
+  onSelect?: (index: number) => void;
 };
 
 export default function ImageCarousel({
@@ -43,27 +29,19 @@ export default function ImageCarousel({
   showTitle = true,
   showSubtitle = true,
   ariaLabel = "Image carousel",
-  onReorder,
+  activeId,
+  onSelect,
 }: ImageCarouselProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const scrollFrameRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [shouldCenterTrack, setShouldCenterTrack] = useState(false);
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-  );
 
   const hasItems = items.length > 0;
 
   const updateActiveIndex = () => {
     const track = trackRef.current;
-    if (!track) {
-      return;
-    }
+    if (!track) return;
 
     const children = Array.from(track.children) as HTMLElement[];
     if (children.length === 0) {
@@ -111,9 +89,7 @@ export default function ImageCarousel({
   };
 
   const scheduleActiveUpdate = () => {
-    if (scrollFrameRef.current) {
-      return;
-    }
+    if (scrollFrameRef.current) return;
 
     scrollFrameRef.current = requestAnimationFrame(() => {
       scrollFrameRef.current = null;
@@ -123,25 +99,33 @@ export default function ImageCarousel({
 
   const scrollToIndex = (nextIndex: number) => {
     const track = trackRef.current;
-    if (!track) {
-      return;
-    }
+    if (!track) return;
 
     const card = track.children[nextIndex] as HTMLElement | undefined;
-    if (!card) {
-      return;
-    }
+    if (!card) return;
 
-    const target =
-      card.offsetLeft - Math.max(0, (track.clientWidth - card.offsetWidth) / 2);
+    const target = card.offsetLeft - Math.max(0, (track.clientWidth - card.offsetWidth) / 2);
     track.scrollTo({ left: target, behavior: "smooth" });
   };
 
+  useLayoutEffect(() => {
+    if (!hasItems) return;
+
+    const nextIndex =
+      activeId == null ? 0 : items.findIndex((item) => item.id === activeId);
+    if (nextIndex < 0) return;
+
+    const frame = requestAnimationFrame(() => {
+      setActiveIndex(nextIndex);
+      scrollToIndex(nextIndex);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [activeId, hasItems, items]);
+
   const scrollTrackByCard = (direction: -1 | 1) => {
     const track = trackRef.current;
-    if (!track) {
-      return;
-    }
+    if (!track) return;
 
     const firstCard = track.querySelector(`.${styles.card}`) as HTMLElement | null;
     const computed = window.getComputedStyle(track);
@@ -154,9 +138,7 @@ export default function ImageCarousel({
   useLayoutEffect(() => {
     const updateCentering = () => {
       const track = trackRef.current;
-      if (!track) {
-        return;
-      }
+      if (!track) return;
 
       setShouldCenterTrack(track.scrollWidth <= track.clientWidth);
       updateActiveIndex();
@@ -167,35 +149,11 @@ export default function ImageCarousel({
 
     return () => {
       window.removeEventListener("resize", updateCentering);
-      if (scrollFrameRef.current) {
-        cancelAnimationFrame(scrollFrameRef.current);
-      }
+      if (scrollFrameRef.current) cancelAnimationFrame(scrollFrameRef.current);
     };
   }, [items.length, imageHeight, imageWidth, showSubtitle, showTitle]);
 
-  if (!hasItems) {
-    return null;
-  }
-
-  function handleDragEnd(event: DragEndEvent) {
-    if (!onReorder) {
-      return;
-    }
-
-    const { active, over } = event;
-    if (!over || active.id === over.id) {
-      return;
-    }
-
-    const oldIndex = items.findIndex((item) => item.id === active.id);
-    const newIndex = items.findIndex((item) => item.id === over.id);
-
-    if (oldIndex < 0 || newIndex < 0) {
-      return;
-    }
-
-    onReorder(arrayMove(items, oldIndex, newIndex));
-  }
+  if (!hasItems) return null;
 
   return (
     <section className={styles.carousel} aria-label={ariaLabel}>
@@ -209,33 +167,52 @@ export default function ImageCarousel({
           {"‹"}
         </button>
 
-        <DndContext
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          sensors={sensors}
+        <div
+          className={`${styles.track} ${shouldCenterTrack ? styles.trackCentered : ""}`}
+          onScroll={scheduleActiveUpdate}
+          ref={trackRef}
         >
-          <SortableContext
-            items={items.map((item) => item.id)}
-            strategy={horizontalListSortingStrategy}
-          >
-            <div
-              className={`${styles.track} ${shouldCenterTrack ? styles.trackCentered : ""}`}
-              onScroll={scheduleActiveUpdate}
-              ref={trackRef}
+          {items.map((item, index) => (
+            <button
+              aria-current={index === activeIndex ? "true" : undefined}
+              className={`${styles.card} ${index === activeIndex ? styles.cardActive : ""}`}
+              key={item.id}
+              onClick={() => {
+                setActiveIndex(index);
+                scrollToIndex(index);
+                onSelect?.(index);
+              }}
+              style={
+                {
+                  "--card-image-width": `${imageWidth}px`,
+                  "--card-image-height": `${imageHeight}px`,
+                } as React.CSSProperties
+              }
+              type="button"
             >
-              {items.map((item) => (
-                <SortableCarouselItem
-                  imageHeight={imageHeight}
-                  imageWidth={imageWidth}
-                  item={item}
-                  key={item.id}
-                  showSubtitle={showSubtitle}
-                  showTitle={showTitle}
+              <div
+                className={`${styles.imageWrap} ${
+                  index === activeIndex ? styles.imageWrapActive : ""
+                }`}
+              >
+                <Image
+                  alt={item.title || item.subtitle || "carousel image"}
+                  className={styles.image}
+                  draggable={false}
+                  fill
+                  sizes={`(max-width: 640px) min(78vw, ${imageWidth}px), ${imageWidth}px`}
+                  src={item.image}
                 />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+              </div>
+
+              {showTitle && item.title ? <div className={styles.title}>{item.title}</div> : null}
+
+              {showSubtitle && item.subtitle ? (
+                <div className={styles.subtitle}>{item.subtitle}</div>
+              ) : null}
+            </button>
+          ))}
+        </div>
 
         <button
           aria-label="Next items"
@@ -246,74 +223,6 @@ export default function ImageCarousel({
           {"›"}
         </button>
       </div>
-
-      <nav className={styles.dots} aria-label="Carousel navigation">
-        {items.map((item, idx) => (
-          <button
-            aria-current={idx === activeIndex ? "true" : undefined}
-            aria-label={`Go to item ${idx + 1}`}
-            className={`${styles.dot} ${idx === activeIndex ? styles.dotActive : ""}`}
-            key={item.id}
-            onClick={() => scrollToIndex(idx)}
-            type="button"
-          />
-        ))}
-      </nav>
     </section>
-  );
-}
-
-type SortableCarouselItemProps = {
-  item: ImageCarouselItem;
-  imageWidth: number;
-  imageHeight: number;
-  showTitle: boolean;
-  showSubtitle: boolean;
-};
-
-function SortableCarouselItem({
-  item,
-  imageWidth,
-  imageHeight,
-  showTitle,
-  showSubtitle,
-}: SortableCarouselItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({
-      id: item.id,
-    });
-
-  return (
-    <article
-      className={`${styles.card} ${isDragging ? styles.cardDragging : ""}`}
-      ref={setNodeRef}
-      style={
-        {
-          "--card-image-width": `${imageWidth}px`,
-          "--card-image-height": `${imageHeight}px`,
-          transform: CSS.Transform.toString(transform),
-          transition,
-        } as React.CSSProperties
-      }
-      {...attributes}
-      {...listeners}
-    >
-      <div className={styles.imageWrap}>
-        <Image
-          alt={item.title || item.subtitle || "carousel image"}
-          className={styles.image}
-          draggable={false}
-          fill
-          sizes={`(max-width: 640px) min(78vw, ${imageWidth}px), ${imageWidth}px`}
-          src={item.image}
-        />
-      </div>
-
-      {showTitle && item.title ? <div className={styles.title}>{item.title}</div> : null}
-
-      {showSubtitle && item.subtitle ? (
-        <div className={styles.subtitle}>{item.subtitle}</div>
-      ) : null}
-    </article>
   );
 }

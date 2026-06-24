@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { FaChevronDown } from "react-icons/fa";
 import { HiHome, HiWrenchScrewdriver } from "react-icons/hi2";
 import { LuPanelLeftClose } from "react-icons/lu";
 import styles from "./HomeSidebar.module.css";
@@ -27,11 +28,37 @@ export default function HomeSidebar({
   );
   const [isToolsEnterPending, setIsToolsEnterPending] = useState(false);
   const [isToolsSidebarDismissed, setIsToolsSidebarDismissed] = useState(false);
-  const toolItems = [
+  const isSpriteEditorGroupOpen = pathname.startsWith("/tools/sprite-editor");
+  const isImageEditorGroupOpen = pathname.startsWith("/tools/image-editor");
+  const toolGroups = [
     {
       id: "sprite-editor",
-      href: "/tools/sprite-editor",
+      href: "/tools/sprite-editor/merge",
       label: t("toolNavigation.spriteEditor"),
+      items: [
+        {
+          id: "sprite-editor-merge",
+          href: "/tools/sprite-editor/merge",
+          label: t("toolNavigation.spriteEditorMerge"),
+        },
+        {
+          id: "sprite-editor-split",
+          href: "/tools/sprite-editor/split",
+          label: t("toolNavigation.spriteEditorSplit"),
+        },
+      ],
+    },
+    {
+      id: "image-editor",
+      href: "/tools/image-editor/color-adjustment",
+      label: t("toolNavigation.imageEditor"),
+      items: [
+        {
+          id: "image-editor-color-adjustment",
+          href: "/tools/image-editor/color-adjustment",
+          label: t("toolNavigation.imageEditorColorAdjustment"),
+        },
+      ],
     },
   ];
   const primaryItems = [
@@ -171,19 +198,59 @@ export default function HomeSidebar({
               </div>
 
               <nav aria-label={t("mainNavigation.tools")} className={styles.nav}>
-                <div className={styles.linkStack}>
-                  {toolItems.map((item) => (
-                    <Link
-                      aria-current={pathname === item.href ? "page" : undefined}
-                      className={`${styles.navLink} ${
-                        pathname === item.href ? styles.navLinkActive : ""
-                      }`}
-                      href={item.href}
-                      key={item.id}
-                    >
-                      <span className={styles.navBullet} aria-hidden="true" />
-                      <span>{item.label}</span>
-                    </Link>
+                <div className={styles.groupStack}>
+                  {toolGroups.map((group) => (
+                    <div className={styles.group} key={group.id}>
+                      {(() => {
+                        const isGroupOpen =
+                          group.id === "sprite-editor"
+                            ? isSpriteEditorGroupOpen
+                            : isImageEditorGroupOpen;
+
+                        return (
+                      <Link
+                        aria-current={isGroupOpen ? "page" : undefined}
+                        className={`${styles.groupButton} ${
+                          isGroupOpen ? styles.groupButtonActive : ""
+                        }`}
+                        href={group.href}
+                      >
+                        <span className={styles.groupLabel}>{group.label}</span>
+                        <FaChevronDown
+                          aria-hidden="true"
+                          className={`${styles.groupChevron} ${
+                            isGroupOpen ? styles.groupChevronOpen : ""
+                          }`}
+                        />
+                      </Link>
+                        );
+                      })()}
+
+                      <div
+                        className={`${styles.groupItems} ${
+                          (group.id === "sprite-editor"
+                            ? isSpriteEditorGroupOpen
+                            : isImageEditorGroupOpen)
+                            ? styles.groupItemsOpen
+                            : ""
+                        }`}
+                      >
+                        <div className={styles.groupItemsInner}>
+                          {group.items.map((item) => (
+                            <Link
+                              aria-current={pathname === item.href ? "page" : undefined}
+                              className={`${styles.groupLink} ${
+                                pathname === item.href ? styles.groupLinkActive : ""
+                              }`}
+                              href={item.href}
+                              key={item.id}
+                            >
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </nav>
