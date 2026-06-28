@@ -165,6 +165,7 @@ export default function SpriteEditor() {
   const splitViewportRef = useRef<HTMLDivElement | null>(null);
   const frameExtractViewportRef = useRef<HTMLDivElement | null>(null);
   const frameEditViewportRef = useRef<HTMLDivElement | null>(null);
+  const frameExtractPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [frames, setFrames] = useState<MergeFrame[]>([]);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [columnsInput, setColumnsInput] = useState(String(DEFAULT_COLUMNS));
@@ -367,6 +368,16 @@ export default function SpriteEditor() {
         height: frame.height,
       })),
     [frames],
+  );
+  const frameExtractCarouselItems = useMemo(
+    () =>
+      previewTiles.map((tile, index) => ({
+        id: tile.id,
+        image: tile.url,
+        subtitle: `${index + 1}/${previewTiles.length}`,
+        title: `#${index + 1}`,
+      })),
+    [previewTiles],
   );
 
   const previewCanvasWidth = Math.max(
@@ -877,6 +888,35 @@ export default function SpriteEditor() {
     isFrameExtractVideoPlaying,
   ]);
 
+  useEffect(() => {
+    if (frameExtractPreviewMode !== "results" || !activeFrameExtractVideoFrame) {
+      return;
+    }
+
+    const canvas = frameExtractPreviewCanvasRef.current;
+
+    if (!canvas) {
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      return;
+    }
+
+    canvas.width = Math.max(1, activeFrameExtractVideoFrame.width);
+    canvas.height = Math.max(1, activeFrameExtractVideoFrame.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(
+      activeFrameExtractVideoFrame.image,
+      0,
+      0,
+      activeFrameExtractVideoFrame.width,
+      activeFrameExtractVideoFrame.height,
+    );
+  }, [activeFrameExtractVideoFrame, frameExtractPreviewMode]);
+
   async function handleMergeInputChange(event: ChangeEvent<HTMLInputElement>) {
     if (event.target.files) {
       await loadFiles(event.target.files);
@@ -986,7 +1026,7 @@ export default function SpriteEditor() {
 
     frameExtractSourceRef.current = nextSource;
     setFrameExtractSource(nextSource);
-    setFrameExtractFps(nextSource.fps);
+    setFrameExtractFps(clamp(Math.round(nextSource.fps), 1, Math.max(1, Math.round(nextSource.fps))));
     setFrameExtractUseSourceFps(nextSource.type === "video");
   }
 
@@ -1089,17 +1129,24 @@ export default function SpriteEditor() {
       return;
     }
 
-    setFrameExtractFps(frameExtractSource.fps);
+    const nextFps = Math.max(1, Math.round(frameExtractSource.fps));
+    setFrameExtractFps(nextFps);
     setFrameExtractUseSourceFps(true);
   }
 
   function handleFrameExtractFpsChange(nextValue: number) {
-    const safeValue = clamp(nextValue, 1, 60);
+    const safeValue = clamp(nextValue, 1, frameExtractFpsMax);
     setFrameExtractFps(safeValue);
     setFrameExtractUseSourceFps(false);
   }
 
   const isFrameExtractSamplingEnabled = frameExtractSource?.type === "video";
+  const frameExtractFpsMax = Math.max(
+    1,
+    Math.round(
+      frameExtractSource?.type === "video" ? (frameExtractSource.fps || 24) : frameExtractFps,
+    ),
+  );
 
   function clearFrames() {
     framesRef.current.forEach((frame) => {
@@ -1434,6 +1481,46 @@ export default function SpriteEditor() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  }
+
+  async function exportAllFrameExtractFrames() {
+    if (frames.length === 0) {
+      return;
+    }
+
+    try {
+      console.log("[SpriteEditor] Exporting extracted frames", {
+        frameCount: frames.length,
+      });
+
+      const zip = new JSZip();
+
+      for (const [index, frame] of frames.entries()) {
+        const response = await fetch(frame.url);
+        const blob = await response.blob();
+        const extension = blob.type === "image/jpeg" ? "jpg" : "png";
+        const baseName =
+          sanitizeFileNamePart(stripExtension(frame.name)) || `frame-${index + 1}`;
+        zip.file(`${baseName}.${extension}`, blob);
+      }
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "frame-extract-export.zip";
+      link.rel = "noopener";
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+
+      window.setTimeout(() => {
+        link.remove();
+        URL.revokeObjectURL(url);
+      }, 0);
+    } catch (error) {
+      console.error("[SpriteEditor] Failed to export extracted frames", error);
+    }
   }
 
   function removeFrame(frameId: string) {
@@ -2961,7 +3048,7 @@ export default function SpriteEditor() {
                           </button>
                         </div>
                         <input
-                          max={60}
+                          max={frameExtractFpsMax}
                           min={1}
                           onChange={(event) =>
                             handleFrameExtractFpsChange(Number(event.target.value))
@@ -3066,12 +3153,9 @@ export default function SpriteEditor() {
                                 }
                               >
                                 <div className={styles.videoPreviewStage}>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    alt={activeFrameExtractVideoFrame.name}
+                                  <canvas
                                     className={styles.videoPreviewImage}
-                                    draggable={false}
-                                    src={activeFrameExtractVideoFrame.url}
+                                    ref={frameExtractPreviewCanvasRef}
                                     style={{
                                       width: `${frameExtractVideoPreviewWidth}px`,
                                       height: `${frameExtractVideoPreviewHeight}px`,
@@ -3119,32 +3203,38 @@ export default function SpriteEditor() {
 
                 {frameExtractPreviewMode === "results" && activeFrameExtractVideoFrame ? (
                   <div className={styles.videoPreviewPanel}>
-                    <div
-                      className={`${styles.videoPreviewCarouselWrap} ${
-                        isFrameExtractVideoPlaying ? "" : styles.videoPreviewCarouselWrapExpanded
-                      }`}
-                    >
-                      <ImageCarousel
-                        activeId={activeFrameExtractVideoFrame.id}
-                        ariaLabel="Sprite editor frame extract results"
-                        compact
-                        imageHeight={92}
-                        imageWidth={92}
-                        items={previewTiles.map((tile, index) => ({
-                          id: tile.id,
-                          image: tile.url,
-                          subtitle: `${index + 1}/${previewTiles.length}`,
-                          title: `#${index + 1}`,
-                        }))}
-                        onRemove={(id) => removeFrame(String(id))}
-                        onReorder={reorderFramesByCarousel}
-                        onSelect={(index) => {
-                          goToFrameExtractVideoFrame(index);
-                          setIsFrameExtractVideoPlaying(false);
-                        }}
-                        removableByDrag
-                      />
+                    <div className={styles.splitResultsHeader}>
+                      <p className={styles.panelEyebrow}>{t("split.resultsTitle")}</p>
+                      <button
+                        className={styles.secondaryAction}
+                        disabled={frames.length === 0}
+                        onClick={exportAllFrameExtractFrames}
+                        type="button"
+                      >
+                        {t("frameEdit.exportAll")}
+                      </button>
                     </div>
+                    {!isFrameExtractVideoPlaying ? (
+                      <div
+                        className={`${styles.videoPreviewCarouselWrap} ${styles.videoPreviewCarouselWrapExpanded}`}
+                      >
+                        <ImageCarousel
+                          activeId={activeFrameExtractVideoFrame.id}
+                          ariaLabel="Sprite editor frame extract results"
+                          compact
+                          imageHeight={92}
+                          imageWidth={92}
+                          items={frameExtractCarouselItems}
+                          onRemove={(id) => removeFrame(String(id))}
+                          onReorder={reorderFramesByCarousel}
+                          onSelect={(index) => {
+                            goToFrameExtractVideoFrame(index);
+                            setIsFrameExtractVideoPlaying(false);
+                          }}
+                          removableByDrag
+                        />
+                      </div>
+                    ) : null}
                     <div className={styles.videoPreviewControls}>
                       <button
                         aria-label="Previous frame"
@@ -3226,7 +3316,7 @@ export default function SpriteEditor() {
                               <input
                                 className={styles.zoomSlider}
                                 id="frame-extract-preview-fps"
-                                max={60}
+                                max={frameExtractFpsMax}
                                 min={1}
                                 onChange={(event) =>
                                   handleFrameExtractFpsChange(Number(event.target.value))
