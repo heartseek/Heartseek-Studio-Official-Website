@@ -73,7 +73,9 @@
       "extracting": "提取中...",
       "ready": "已載入{type}，準備好後點擊開始提取。",
       "video": "影片",
-      "gif": "GIF"
+      "gif": "GIF",
+      "sourceFps": "按影片幀率",
+      "previewFps": "預覽幀率"
     },
     "frameEdit": {
       "emptyTitle": "拖放資料夾、多張圖片或序列幀到這裡即可匯入",

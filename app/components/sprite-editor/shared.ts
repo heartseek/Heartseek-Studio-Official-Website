@@ -24,10 +24,15 @@ export type FrameExtractSource = {
   url: string;
   file: File;
   type: "video" | "gif";
+  width: number;
+  height: number;
+  fps: number;
+  frameCount?: number;
 };
 
 export type SplitMode = "grid" | "size" | "smart";
 export type SplitPreviewMode = "preview" | "results" | "video";
+export type FrameExtractPreviewMode = "video" | "results";
 export type FrameEditAspectPreset = "none" | "1:1" | "4:3" | "3:4" | "16:9" | "9:16";
 export type FrameEditProcessMode = "scale" | "smartScale" | "extendOnly";
 

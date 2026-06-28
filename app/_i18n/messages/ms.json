@@ -73,7 +73,9 @@
       "extracting": "Sedang mengekstrak...",
       "ready": "{type} telah dimuatkan. Klik mula ekstrak apabila bersedia.",
       "video": "Video",
-      "gif": "GIF"
+      "gif": "GIF",
+      "sourceFps": "Ikut FPS Sumber",
+      "previewFps": "FPS Pratonton"
     },
     "frameEdit": {
       "emptyTitle": "Seret folder, banyak imej, atau bingkai turutan ke sini untuk import",

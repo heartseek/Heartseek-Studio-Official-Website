@@ -73,7 +73,9 @@
       "extracting": "Extracting...",
       "ready": "{type} loaded. Click start extract when ready.",
       "video": "Video",
-      "gif": "GIF"
+      "gif": "GIF",
+      "sourceFps": "Use Source FPS",
+      "previewFps": "Preview FPS"
     },
     "frameEdit": {
       "emptyTitle": "Drop a folder, multiple images, or sequence frames here to import",

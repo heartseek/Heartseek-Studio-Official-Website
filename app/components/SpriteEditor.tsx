@@ -38,6 +38,7 @@ import type {
   FileNameSegmentOption,
   FrameEditAspectPreset,
   FrameEditProcessMode,
+  FrameExtractPreviewMode,
   FrameExtractSource,
   MergeFrame,
   PreviewMode,
@@ -72,6 +73,34 @@ type DroppedDirectoryReader = {
     errorCallback?: (error: DOMException) => void,
   ) => void;
 };
+
+type MediaInfoFactoryFn = (options?: {
+  format?: "object";
+  locateFile?: (path: string, prefix: string) => string;
+}) => Promise<{
+  analyzeData: (
+    size: () => number,
+    readChunk: (chunkSize: number, offset: number) => Promise<Uint8Array>,
+  ) => Promise<{
+    media?: {
+      track?: Array<{
+        "@type"?: string;
+        FrameRate?: number;
+      }>;
+    };
+  }>;
+  close: () => void;
+}>;
+
+declare global {
+  interface Window {
+    MediaInfo?: {
+      mediaInfoFactory?: MediaInfoFactoryFn;
+    };
+  }
+}
+
+let mediaInfoFactoryPromise: Promise<MediaInfoFactoryFn | null> | null = null;
 
 
 const DEFAULT_COLUMNS = 4;
@@ -134,6 +163,7 @@ export default function SpriteEditor() {
   const dragDepthRef = useRef(0);
   const mergeViewportRef = useRef<HTMLDivElement | null>(null);
   const splitViewportRef = useRef<HTMLDivElement | null>(null);
+  const frameExtractViewportRef = useRef<HTMLDivElement | null>(null);
   const frameEditViewportRef = useRef<HTMLDivElement | null>(null);
   const [frames, setFrames] = useState<MergeFrame[]>([]);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
@@ -156,6 +186,8 @@ export default function SpriteEditor() {
   const [previewZoom, setPreviewZoom] = useState(100);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("sprite");
   const [splitPreviewMode, setSplitPreviewMode] = useState<SplitPreviewMode>("preview");
+  const [frameExtractPreviewMode, setFrameExtractPreviewMode] =
+    useState<FrameExtractPreviewMode>("video");
   const [videoFps, setVideoFps] = useState(24);
   const [videoFpsInput, setVideoFpsInput] = useState("24");
   const [videoFrameIndex, setVideoFrameIndex] = useState(0);
@@ -164,6 +196,8 @@ export default function SpriteEditor() {
   const [splitVideoFpsInput, setSplitVideoFpsInput] = useState("24");
   const [splitVideoFrameIndex, setSplitVideoFrameIndex] = useState(0);
   const [isSplitVideoPlaying, setIsSplitVideoPlaying] = useState(false);
+  const [frameExtractVideoFrameIndex, setFrameExtractVideoFrameIndex] = useState(0);
+  const [isFrameExtractVideoPlaying, setIsFrameExtractVideoPlaying] = useState(false);
   const [frameEditAspectPreset, setFrameEditAspectPreset] =
     useState<FrameEditAspectPreset>("1:1");
   const [frameEditProcessMode, setFrameEditProcessMode] =
@@ -202,12 +236,17 @@ export default function SpriteEditor() {
   const frameExtractSourceRef = useRef<FrameExtractSource | null>(null);
   const [frameExtractSource, setFrameExtractSource] = useState<FrameExtractSource | null>(null);
   const [frameExtractFps, setFrameExtractFps] = useState(12);
+  const [frameExtractUseSourceFps, setFrameExtractUseSourceFps] = useState(true);
   const [isExtractingFrames, setIsExtractingFrames] = useState(false);
   const [mergeViewportSize, setMergeViewportSize] = useState<ViewportSize>({
     width: PREVIEW_MAX_WIDTH,
     height: PREVIEW_MAX_HEIGHT,
   });
   const [splitViewportSize, setSplitViewportSize] = useState<ViewportSize>({
+    width: PREVIEW_MAX_WIDTH,
+    height: PREVIEW_MAX_HEIGHT,
+  });
+  const [frameExtractViewportSize, setFrameExtractViewportSize] = useState<ViewportSize>({
     width: PREVIEW_MAX_WIDTH,
     height: PREVIEW_MAX_HEIGHT,
   });
@@ -251,6 +290,11 @@ export default function SpriteEditor() {
   useEffect(() => observeViewportSize(mergeViewportRef.current, setMergeViewportSize), []);
 
   useEffect(() => observeViewportSize(splitViewportRef.current, setSplitViewportSize), []);
+
+  useEffect(
+    () => observeViewportSize(frameExtractViewportRef.current, setFrameExtractViewportSize),
+    [],
+  );
 
   useEffect(
     () => observeViewportSize(frameEditViewportRef.current, setFrameEditViewportSize),
@@ -303,7 +347,7 @@ export default function SpriteEditor() {
         : 1;
     const fitScale = Math.min(widthScale, heightScale);
 
-    return Math.min(fitScale * (previewZoom / 100), fitScale);
+    return fitScale * (previewZoom / 100);
   }, [
     activeMergeViewportSize.height,
     activeMergeViewportSize.width,
@@ -348,7 +392,7 @@ export default function SpriteEditor() {
       activeVideoFrame.height > 0 ? availableHeight / activeVideoFrame.height : 1;
     const fitScale = Math.min(widthScale, heightScale);
 
-    return Math.min(fitScale * (previewZoom / 100), fitScale);
+    return fitScale * (previewZoom / 100);
   }, [
     activeMergeViewportSize.height,
     activeMergeViewportSize.width,
@@ -436,7 +480,7 @@ export default function SpriteEditor() {
     const heightScale = splitSource.height > 0 ? availableHeight / splitSource.height : 1;
     const fitScale = Math.min(widthScale, heightScale);
 
-    return Math.min(fitScale * (previewZoom / 100), fitScale);
+    return fitScale * (previewZoom / 100);
   }, [previewZoom, splitSource, splitViewportSize.height, splitViewportSize.width]);
   const splitPreviewWidth = Math.max(
     1,
@@ -472,7 +516,7 @@ export default function SpriteEditor() {
         : 1;
     const fitScale = Math.min(widthScale, heightScale);
 
-    return Math.min(fitScale * (previewZoom / 100), fitScale);
+    return fitScale * (previewZoom / 100);
   }, [
     activeSplitVideoFrame,
     previewZoom,
@@ -486,6 +530,68 @@ export default function SpriteEditor() {
   const splitVideoPreviewHeight = Math.max(
     1,
     Math.round((activeSplitVideoFrame?.height ?? 1) * splitVideoPreviewScale),
+  );
+  const frameExtractPreviewScale = useMemo(() => {
+    if (!frameExtractSource) {
+      return 1;
+    }
+
+    const availableWidth = Math.max(1, frameExtractViewportSize.width);
+    const availableHeight = Math.max(1, frameExtractViewportSize.height);
+    const widthScale =
+      frameExtractSource.width > 0 ? availableWidth / frameExtractSource.width : 1;
+    const heightScale =
+      frameExtractSource.height > 0 ? availableHeight / frameExtractSource.height : 1;
+    const fitScale = Math.min(widthScale, heightScale);
+
+    return fitScale * (previewZoom / 100);
+  }, [
+    frameExtractSource,
+    frameExtractViewportSize.height,
+    frameExtractViewportSize.width,
+    previewZoom,
+  ]);
+  const frameExtractPreviewWidth = Math.max(
+    1,
+    Math.round((frameExtractSource?.width ?? 1) * frameExtractPreviewScale),
+  );
+  const frameExtractPreviewHeight = Math.max(
+    1,
+    Math.round((frameExtractSource?.height ?? 1) * frameExtractPreviewScale),
+  );
+  const activeFrameExtractVideoFrame =
+    frames[frameExtractVideoFrameIndex % Math.max(frames.length, 1)] ?? null;
+  const frameExtractVideoPreviewScale = useMemo(() => {
+    if (!activeFrameExtractVideoFrame) {
+      return 1;
+    }
+
+    const availableWidth = Math.max(1, frameExtractViewportSize.width);
+    const availableHeight = Math.max(1, frameExtractViewportSize.height);
+    const widthScale =
+      activeFrameExtractVideoFrame.width > 0
+        ? availableWidth / activeFrameExtractVideoFrame.width
+        : 1;
+    const heightScale =
+      activeFrameExtractVideoFrame.height > 0
+        ? availableHeight / activeFrameExtractVideoFrame.height
+        : 1;
+    const fitScale = Math.min(widthScale, heightScale);
+
+    return fitScale * (previewZoom / 100);
+  }, [
+    activeFrameExtractVideoFrame,
+    frameExtractViewportSize.height,
+    frameExtractViewportSize.width,
+    previewZoom,
+  ]);
+  const frameExtractVideoPreviewWidth = Math.max(
+    1,
+    Math.round((activeFrameExtractVideoFrame?.width ?? 1) * frameExtractVideoPreviewScale),
+  );
+  const frameExtractVideoPreviewHeight = Math.max(
+    1,
+    Math.round((activeFrameExtractVideoFrame?.height ?? 1) * frameExtractVideoPreviewScale),
   );
   const fileNamePrefixOptions = useMemo<FileNameSegmentOption[]>(
     () => [
@@ -723,6 +829,54 @@ export default function SpriteEditor() {
     splitVideoFrameDelay,
   ]);
 
+  useEffect(() => {
+    if (
+      frameExtractPreviewMode !== "results" ||
+      frames.length === 0 ||
+      !isFrameExtractVideoPlaying
+    ) {
+      return;
+    }
+
+    let animationFrame = 0;
+    let previousTime = 0;
+    let isStopped = false;
+    const frameDelay = 1000 / Math.max(1, frameExtractFps);
+
+    const loop = (now: number) => {
+      if (isStopped) {
+        return;
+      }
+
+      if (previousTime === 0) {
+        previousTime = now;
+      }
+
+      const elapsed = now - previousTime;
+      if (elapsed >= frameDelay) {
+        const steps = Math.floor(elapsed / frameDelay);
+        setFrameExtractVideoFrameIndex((current) =>
+          frames.length === 0 ? 0 : (current + steps) % frames.length,
+        );
+        previousTime += steps * frameDelay;
+      }
+
+      animationFrame = window.requestAnimationFrame(loop);
+    };
+
+    animationFrame = window.requestAnimationFrame(loop);
+
+    return () => {
+      isStopped = true;
+      window.cancelAnimationFrame(animationFrame);
+    };
+  }, [
+    frameExtractFps,
+    frameExtractPreviewMode,
+    frames.length,
+    isFrameExtractVideoPlaying,
+  ]);
+
   async function handleMergeInputChange(event: ChangeEvent<HTMLInputElement>) {
     if (event.target.files) {
       await loadFiles(event.target.files);
@@ -824,7 +978,7 @@ export default function SpriteEditor() {
       return;
     }
 
-    const nextSource = createFrameExtractSource(sourceFile);
+    const nextSource = await createFrameExtractSource(sourceFile);
 
     if (frameExtractSourceRef.current) {
       URL.revokeObjectURL(frameExtractSourceRef.current.url);
@@ -832,6 +986,8 @@ export default function SpriteEditor() {
 
     frameExtractSourceRef.current = nextSource;
     setFrameExtractSource(nextSource);
+    setFrameExtractFps(nextSource.fps);
+    setFrameExtractUseSourceFps(nextSource.type === "video");
   }
 
   function activatePreviewMode(mode: PreviewMode) {
@@ -901,6 +1057,50 @@ export default function SpriteEditor() {
     splitVideoTimeRef.current = 0;
   }
 
+  function activateFrameExtractPreviewMode(mode: FrameExtractPreviewMode) {
+    setFrameExtractPreviewMode(mode);
+
+    if (mode === "video") {
+      setIsFrameExtractVideoPlaying(false);
+      setFrameExtractVideoFrameIndex(0);
+    }
+  }
+
+  function goToFrameExtractVideoFrame(nextIndex: number) {
+    if (frames.length === 0) {
+      return;
+    }
+
+    const normalizedIndex = ((nextIndex % frames.length) + frames.length) % frames.length;
+    setFrameExtractVideoFrameIndex(normalizedIndex);
+  }
+
+  function stepFrameExtractVideoFrame(direction: 1 | -1) {
+    goToFrameExtractVideoFrame(frameExtractVideoFrameIndex + direction);
+    setIsFrameExtractVideoPlaying(false);
+  }
+
+  function toggleFrameExtractVideoPlayback() {
+    setIsFrameExtractVideoPlaying((current) => !current);
+  }
+
+  function applyFrameExtractSourceFps() {
+    if (!frameExtractSource) {
+      return;
+    }
+
+    setFrameExtractFps(frameExtractSource.fps);
+    setFrameExtractUseSourceFps(true);
+  }
+
+  function handleFrameExtractFpsChange(nextValue: number) {
+    const safeValue = clamp(nextValue, 1, 60);
+    setFrameExtractFps(safeValue);
+    setFrameExtractUseSourceFps(false);
+  }
+
+  const isFrameExtractSamplingEnabled = frameExtractSource?.type === "video";
+
   function clearFrames() {
     framesRef.current.forEach((frame) => {
       if (frame.url !== frame.originalUrl) {
@@ -936,6 +1136,11 @@ export default function SpriteEditor() {
 
     setFrameExtractSource(null);
     setIsExtractingFrames(false);
+    setFrameExtractFps(12);
+    setFrameExtractUseSourceFps(true);
+    setFrameExtractPreviewMode("video");
+    setFrameExtractVideoFrameIndex(0);
+    setIsFrameExtractVideoPlaying(false);
   }
 
   function applyFrameEditDimensions(
@@ -964,7 +1169,7 @@ export default function SpriteEditor() {
     try {
       const nextFrames =
         frameExtractSource.type === "gif"
-          ? await extractGifFrames(frameExtractSource.file, frameExtractFps)
+          ? await extractGifFrames(frameExtractSource.file)
           : await extractVideoFrames(frameExtractSource.file, frameExtractFps);
 
       if (nextFrames.length === 0) {
@@ -983,6 +1188,9 @@ export default function SpriteEditor() {
       videoFrameRef.current = 0;
       videoTimeRef.current = 0;
       setVideoFrameIndex(0);
+      setFrameExtractVideoFrameIndex(0);
+      setIsFrameExtractVideoPlaying(false);
+      setFrameExtractPreviewMode("results");
     } finally {
       setIsExtractingFrames(false);
     }
@@ -2737,20 +2945,33 @@ export default function SpriteEditor() {
               <section className={`${styles.tabPanel} ${styles.mergePanel}`} role="tabpanel">
                 <div className={styles.canvasToolbar}>
                   <div className={styles.controlsInline}>
-                    <label className={styles.field}>
-                      <span>{t("frameExtract.fps")}</span>
-                      <input
-                        max={60}
-                        min={1}
-                        onChange={(event) => {
-                          const nextValue = clamp(Number(event.target.value), 1, 60);
-                          setFrameExtractFps(nextValue);
-                        }}
-                        type="range"
-                        value={frameExtractFps}
-                      />
-                      <span className={styles.fieldValue}>{frameExtractFps} FPS</span>
-                    </label>
+                    {isFrameExtractSamplingEnabled ? (
+                      <label className={styles.field}>
+                        <span>{t("frameExtract.fps")}</span>
+                        <div className={styles.frameExtractFpsRow}>
+                          <button
+                            className={`${styles.tertiaryAction} ${
+                              frameExtractUseSourceFps ? styles.frameExtractFpsButtonActive : ""
+                            }`}
+                            disabled={!frameExtractSource}
+                            onClick={applyFrameExtractSourceFps}
+                            type="button"
+                          >
+                            {t("frameExtract.sourceFps")}
+                          </button>
+                        </div>
+                        <input
+                          max={60}
+                          min={1}
+                          onChange={(event) =>
+                            handleFrameExtractFpsChange(Number(event.target.value))
+                          }
+                          type="range"
+                          value={frameExtractFps}
+                        />
+                        <span className={styles.fieldValue}>{frameExtractFps} FPS</span>
+                      </label>
+                    ) : null}
                   </div>
 
                   <div className={styles.toolbarActions}>
@@ -2775,6 +2996,7 @@ export default function SpriteEditor() {
 
                 <div className={styles.previewFrame}>
                   <div
+                    ref={frameExtractViewportRef}
                     className={`${styles.canvasViewport} ${
                       frameExtractSource
                         ? styles.canvasViewportFilled
@@ -2782,16 +3004,98 @@ export default function SpriteEditor() {
                     }`}
                   >
                     {frameExtractSource ? (
-                      <div className={styles.emptyPreview}>
-                        <p className={styles.emptyPreviewTitle}>{frameExtractSource.name}</p>
-                        <p className={styles.emptyPreviewCopy}>
-                          {t("frameExtract.ready", {
-                            type:
-                              frameExtractSource.type === "gif"
-                                ? t("frameExtract.gif")
-                                : t("frameExtract.video"),
-                          })}
-                        </p>
+                      <div className={styles.previewStageViewport}>
+                        <div
+                          className={`${styles.previewStagePanels} ${
+                            frameExtractPreviewMode === "results"
+                              ? styles.previewStagePanelsSplitResults
+                              : ""
+                          }`}
+                        >
+                          <div className={styles.previewStagePanel}>
+                            <div
+                              className={styles.previewCanvasStage}
+                              style={
+                                {
+                                  width: `${frameExtractPreviewWidth}px`,
+                                  height: `${frameExtractPreviewHeight}px`,
+                                } satisfies React.CSSProperties
+                              }
+                            >
+                              <div className={styles.videoPreviewStage}>
+                                {frameExtractSource.type === "gif" ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    alt={frameExtractSource.name}
+                                    className={styles.videoPreviewImage}
+                                    draggable={false}
+                                    src={frameExtractSource.url}
+                                    style={{
+                                      width: `${frameExtractPreviewWidth}px`,
+                                      height: `${frameExtractPreviewHeight}px`,
+                                    }}
+                                  />
+                                ) : (
+                                  <video
+                                    autoPlay
+                                    className={styles.videoPreviewImage}
+                                    controls
+                                    loop
+                                    muted
+                                    playsInline
+                                    src={frameExtractSource.url}
+                                    style={{
+                                      width: `${frameExtractPreviewWidth}px`,
+                                      height: `${frameExtractPreviewHeight}px`,
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className={styles.previewStagePanel}>
+                            {activeFrameExtractVideoFrame ? (
+                              <div
+                                className={styles.previewCanvasStage}
+                                style={
+                                  {
+                                    width: `${frameExtractVideoPreviewWidth}px`,
+                                    height: `${frameExtractVideoPreviewHeight}px`,
+                                  } satisfies React.CSSProperties
+                                }
+                              >
+                                <div className={styles.videoPreviewStage}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    alt={activeFrameExtractVideoFrame.name}
+                                    className={styles.videoPreviewImage}
+                                    draggable={false}
+                                    src={activeFrameExtractVideoFrame.url}
+                                    style={{
+                                      width: `${frameExtractVideoPreviewWidth}px`,
+                                      height: `${frameExtractVideoPreviewHeight}px`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className={styles.emptyPreview}>
+                                <p className={styles.emptyPreviewTitle}>
+                                  {t("frameExtract.ready", {
+                                    type:
+                                      frameExtractSource.type === "gif"
+                                        ? t("frameExtract.gif")
+                                        : t("frameExtract.video"),
+                                  })}
+                                </p>
+                                <p className={styles.emptyPreviewCopy}>
+                                  {t("split.noSlices")}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <div className={styles.emptyPreview}>
@@ -2810,6 +3114,131 @@ export default function SpriteEditor() {
                         </label>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {frameExtractPreviewMode === "results" && activeFrameExtractVideoFrame ? (
+                  <div className={styles.videoPreviewPanel}>
+                    <div
+                      className={`${styles.videoPreviewCarouselWrap} ${
+                        isFrameExtractVideoPlaying ? "" : styles.videoPreviewCarouselWrapExpanded
+                      }`}
+                    >
+                      <ImageCarousel
+                        activeId={activeFrameExtractVideoFrame.id}
+                        ariaLabel="Sprite editor frame extract results"
+                        compact
+                        imageHeight={92}
+                        imageWidth={92}
+                        items={previewTiles.map((tile, index) => ({
+                          id: tile.id,
+                          image: tile.url,
+                          subtitle: `${index + 1}/${previewTiles.length}`,
+                          title: `#${index + 1}`,
+                        }))}
+                        onRemove={(id) => removeFrame(String(id))}
+                        onReorder={reorderFramesByCarousel}
+                        onSelect={(index) => {
+                          goToFrameExtractVideoFrame(index);
+                          setIsFrameExtractVideoPlaying(false);
+                        }}
+                        removableByDrag
+                      />
+                    </div>
+                    <div className={styles.videoPreviewControls}>
+                      <button
+                        aria-label="Previous frame"
+                        className={styles.videoPreviewControl}
+                        onClick={() => stepFrameExtractVideoFrame(-1)}
+                        type="button"
+                      >
+                        <FaStepBackward aria-hidden="true" />
+                      </button>
+                      <button
+                        aria-label={isFrameExtractVideoPlaying ? "Pause" : "Play"}
+                        className={styles.videoPreviewControl}
+                        onClick={toggleFrameExtractVideoPlayback}
+                        type="button"
+                      >
+                        {isFrameExtractVideoPlaying ? (
+                          <FaPause aria-hidden="true" />
+                        ) : (
+                          <FaPlay aria-hidden="true" />
+                        )}
+                      </button>
+                      <button
+                        aria-label="Next frame"
+                        className={styles.videoPreviewControl}
+                        onClick={() => stepFrameExtractVideoFrame(1)}
+                        type="button"
+                      >
+                        <FaStepForward aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className={styles.zoomBar}>
+                  <div className={styles.zoomControls}>
+                    <div className={styles.previewControlsColumn}>
+                      <div className={styles.previewModeRow}>
+                        <div
+                          aria-label={t("preview.mode")}
+                          className={styles.previewModeSwitch}
+                          role="tablist"
+                        >
+                          <button
+                            className={`${styles.previewModeButton} ${
+                              frameExtractPreviewMode === "video"
+                                ? styles.previewModeButtonActive
+                                : ""
+                            }`}
+                            onClick={() => activateFrameExtractPreviewMode("video")}
+                            aria-label={t("preview.videoMode")}
+                            type="button"
+                          >
+                            <BsCameraVideoFill aria-hidden="true" />
+                          </button>
+                          <button
+                            className={`${styles.previewModeButton} ${
+                              frameExtractPreviewMode === "results"
+                                ? styles.previewModeButtonActive
+                                : ""
+                            }`}
+                            disabled={frames.length === 0}
+                            onClick={() => activateFrameExtractPreviewMode("results")}
+                            aria-label={t("split.resultsTitle")}
+                            type="button"
+                          >
+                            <BsGrid3X3GapFill aria-hidden="true" />
+                          </button>
+                        </div>
+                        <div className={styles.previewModeFieldWrap}>
+                          {isFrameExtractSamplingEnabled ? (
+                            <>
+                              <label
+                                className={styles.zoomLabel}
+                                htmlFor="frame-extract-preview-fps"
+                              >
+                                <span>{t("frameExtract.previewFps")}</span>
+                                <span>{frameExtractFps} FPS</span>
+                              </label>
+                              <input
+                                className={styles.zoomSlider}
+                                id="frame-extract-preview-fps"
+                                max={60}
+                                min={1}
+                                onChange={(event) =>
+                                  handleFrameExtractFpsChange(Number(event.target.value))
+                                }
+                                type="range"
+                                value={frameExtractFps}
+                              />
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -3439,14 +3868,46 @@ function isSupportedFrameExtractFile(file: File) {
   return file.type === "image/gif" || /\.gif$/i.test(file.name);
 }
 
-function createFrameExtractSource(file: File): FrameExtractSource {
-  return {
-    id: `${file.name}-${createFrameId()}`,
-    name: file.name,
-    url: URL.createObjectURL(file),
-    file,
-    type: file.type === "image/gif" || /\.gif$/i.test(file.name) ? "gif" : "video",
-  };
+async function createFrameExtractSource(file: File): Promise<FrameExtractSource> {
+  const url = URL.createObjectURL(file);
+  const type = file.type === "image/gif" || /\.gif$/i.test(file.name) ? "gif" : "video";
+
+  try {
+    if (type === "gif") {
+      const sourceFps = await getGifSourceFps(file);
+      const frameCount = await getGifFrameCount(file);
+      const image = await loadImage(url);
+
+      return {
+        id: `${file.name}-${createFrameId()}`,
+        name: file.name,
+        url,
+        file,
+        type,
+        width: image.width,
+        height: image.height,
+        fps: clamp(Math.round(sourceFps), 1, 60),
+        frameCount,
+      };
+    }
+
+    const video = await loadVideo(url);
+    const sourceFps = await getVideoSourceFps(file);
+
+    return {
+      id: `${file.name}-${createFrameId()}`,
+      name: file.name,
+      url,
+      file,
+      type,
+      width: video.videoWidth,
+      height: video.videoHeight,
+      fps: clamp(Math.round(sourceFps), 1, 60),
+    };
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    throw error;
+  }
 }
 
 function createFrameId() {
@@ -3478,6 +3939,123 @@ function loadVideo(url: string) {
     video.onerror = reject;
     video.src = url;
   });
+}
+
+async function getVideoSourceFps(file: File) {
+  try {
+    const mediaInfoFactory = await loadMediaInfoFactory();
+
+    if (!mediaInfoFactory) {
+      return 24;
+    }
+
+    const mediaInfo = await mediaInfoFactory({
+      format: "object",
+      locateFile: (path) => {
+        if (path.endsWith("MediaInfoModule.wasm")) {
+          return "/mediainfo/MediaInfoModule.wasm";
+        }
+
+        return path;
+      },
+    });
+
+    try {
+      const result = await mediaInfo.analyzeData(
+        () => file.size,
+        async (chunkSize, offset) =>
+          new Uint8Array(await file.slice(offset, offset + chunkSize).arrayBuffer()),
+      );
+      const videoTrack = result.media?.track?.find((track) => track["@type"] === "Video");
+      const frameRate = videoTrack?.FrameRate;
+
+      if (typeof frameRate === "number" && Number.isFinite(frameRate) && frameRate > 0) {
+        return frameRate;
+      }
+    } finally {
+      mediaInfo.close();
+    }
+  } catch (error) {
+    console.warn("[SpriteEditor] Failed to read video FPS with mediainfo.js", {
+      name: file.name,
+      error,
+    });
+  }
+
+  return 24;
+}
+
+async function loadMediaInfoFactory(): Promise<MediaInfoFactoryFn | null> {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (window.MediaInfo?.mediaInfoFactory) {
+    return window.MediaInfo.mediaInfoFactory;
+  }
+
+  if (!mediaInfoFactoryPromise) {
+    mediaInfoFactoryPromise = new Promise((resolve) => {
+      const existingScript = document.querySelector<HTMLScriptElement>(
+        'script[data-mediainfo-script="true"]',
+      );
+
+      if (existingScript) {
+        existingScript.addEventListener("load", () => {
+          resolve(window.MediaInfo?.mediaInfoFactory ?? null);
+        });
+        existingScript.addEventListener("error", () => resolve(null));
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "/mediainfo/index.min.js";
+      script.async = true;
+      script.dataset.mediainfoScript = "true";
+      script.onload = () => resolve(window.MediaInfo?.mediaInfoFactory ?? null);
+      script.onerror = () => resolve(null);
+      document.head.appendChild(script);
+    });
+  }
+
+  return mediaInfoFactoryPromise;
+}
+
+async function getGifSourceFps(file: File) {
+  const buffer = await file.arrayBuffer();
+  const gif = parseGIF(buffer);
+  const frames = decompressFrames(gif, true);
+
+  if (frames.length === 0) {
+    return 24;
+  }
+
+  const totalDelay = frames.reduce((sum, frame) => sum + Math.max(frame.delay, 1), 0);
+  const averageDelay = totalDelay / frames.length;
+  const averageFps =
+    !Number.isFinite(averageDelay) || averageDelay <= 0 ? 24 : 100 / averageDelay;
+
+  console.log("[SpriteEditor] GIF source analysis", {
+    name: file.name,
+    frameCount: frames.length,
+    totalDurationMs: totalDelay * 10,
+    averageDelayCs: averageDelay,
+    averageFps,
+    frameDelaysCs: frames.map((frame) => Math.max(frame.delay, 1)),
+  });
+
+  if (!Number.isFinite(averageDelay) || averageDelay <= 0) {
+    return 24;
+  }
+
+  return averageFps;
+}
+
+async function getGifFrameCount(file: File) {
+  const buffer = await file.arrayBuffer();
+  const gif = parseGIF(buffer);
+  const frames = decompressFrames(gif, true);
+  return frames.length;
 }
 
 function seekVideo(video: HTMLVideoElement, time: number) {
@@ -3556,7 +4134,7 @@ async function extractVideoFrames(file: File, fps: number) {
   }
 }
 
-async function extractGifFrames(file: File, fps: number) {
+async function extractGifFrames(file: File) {
   const buffer = await file.arrayBuffer();
   const gif = parseGIF(buffer);
   const frames = decompressFrames(gif, true);
@@ -3565,8 +4143,6 @@ async function extractGifFrames(file: File, fps: number) {
     return [];
   }
 
-  const safeFps = Math.max(1, fps);
-  const frameInterval = 1000 / safeFps;
   const logicalWidth = gif.lsd.width;
   const logicalHeight = gif.lsd.height;
   const canvas = document.createElement("canvas");
@@ -3579,31 +4155,24 @@ async function extractGifFrames(file: File, fps: number) {
   }
 
   const extractedFrames: MergeFrame[] = [];
-  let elapsed = 0;
-  let nextCaptureAt = 0;
 
   for (let index = 0; index < frames.length; index += 1) {
     const frame = frames[index];
     const imageData = ctx.createImageData(frame.dims.width, frame.dims.height);
     imageData.data.set(frame.patch);
     ctx.putImageData(imageData, frame.dims.left, frame.dims.top);
+    const blob = await canvasToBlob(canvas);
 
-    if (elapsed >= nextCaptureAt || index === 0) {
-      const blob = await canvasToBlob(canvas);
-
-      if (blob) {
-        extractedFrames.push(
-          await createMergeFrameFromBlob(
-            blob,
-            `${stripExtension(file.name)}_${String(extractedFrames.length).padStart(4, "0")}.png`,
-          ),
-        );
-      }
-
-      nextCaptureAt += frameInterval;
+    if (!blob) {
+      continue;
     }
 
-    elapsed += Math.max(20, (frame.delay || 10) * 10);
+    extractedFrames.push(
+      await createMergeFrameFromBlob(
+        blob,
+        `${stripExtension(file.name)}_${String(index).padStart(4, "0")}.png`,
+      ),
+    );
   }
 
   return extractedFrames;
