@@ -13,6 +13,8 @@
     "spriteEditor": "Penyunting Sprite",
     "spriteEditorMerge": "Gabung",
     "spriteEditorSplit": "Pisah",
+    "spriteEditorFrameExtract": "Ekstrak Bingkai",
+    "spriteEditorFrameEdit": "Sunting Bingkai",
     "imageEditor": "Penyunting Imej",
     "imageEditorColorAdjustment": "Pelarasan Warna"
   },
@@ -27,6 +29,19 @@
       "columns": "Lajur",
       "padding": "Jarak",
       "format": "Format Eksport"
+    },
+    "naming": {
+      "label": "Penamaan Fail",
+      "fileName": "Nama Fail",
+      "prefix": "Awalan",
+      "middle": "Tengah",
+      "suffix": "Akhiran",
+      "none": "Tiada",
+      "nonePrefix": "Tiada Awalan",
+      "frameIndex": "Nombor Bingkai",
+      "originalName": "Nama Asal Fail",
+      "custom": "Tersuai",
+      "customPlaceholder": "Masukkan teks tersuai"
     },
     "preview": {
       "eyebrow": "Info Pratonton",
@@ -45,7 +60,41 @@
     "tabs": {
       "ariaLabel": "Mod editor sprite",
       "merge": "Gabung",
-      "split": "Pisah"
+      "split": "Pisah",
+      "frameExtract": "Ekstrak Bingkai",
+      "frameEdit": "Sunting Bingkai"
+    },
+    "frameExtract": {
+      "emptyTitle": "Seret video atau GIF ke sini untuk import",
+      "emptyDescription": "Import video atau GIF animasi, tetapkan FPS ekstrak, kemudian klik mula untuk ekstrak bingkai.",
+      "action": "Pilih fail",
+      "fps": "FPS Ekstrak",
+      "run": "Mula Ekstrak",
+      "extracting": "Sedang mengekstrak...",
+      "ready": "{type} telah dimuatkan. Klik mula ekstrak apabila bersedia.",
+      "video": "Video",
+      "gif": "GIF"
+    },
+    "frameEdit": {
+      "emptyTitle": "Seret folder, banyak imej, atau bingkai turutan ke sini untuk import",
+      "emptyDescription": "Import satu urutan bingkai penuh, susun semula bingkai terus dalam pratonton, dan tukar antara pratonton sprite sheet serta video sebelum edit lanjut.",
+      "infoTitle": "Info Bingkai",
+      "frameCount": "Jumlah Bingkai",
+      "activeFrame": "Bingkai Aktif",
+      "sequenceSize": "Saiz Urutan",
+      "aspectRatio": "Nisbah",
+      "aspectNone": "Tiada",
+      "resolution": "Resolusi",
+      "resolutionNone": "0",
+      "width": "Lebar",
+      "height": "Tinggi",
+      "process": "Mula Proses",
+      "processMode": "Mod Pemprosesan",
+      "processScale": "Skala ke Saiz",
+      "processSmartScale": "Skala Pintar",
+      "processExtendOnly": "Kembang Sahaja",
+      "restore": "Pulihkan",
+      "exportAll": "Eksport Semua"
     },
     "split": {
       "emptyTitle": "Seret imej ke sini untuk import",
@@ -85,9 +134,23 @@
       "clear": "Kosongkan Senarai"
     },
     "controls": {
+      "mode": "Mod Pelarasan",
+      "colorAdjust": "Larasan Warna",
+      "blackWhite": "Hitam Putih",
+      "softBlackWhite": "Hitam Putih Lembut",
+      "hardBlackWhite": "Hitam Putih Keras",
+      "invertMode": "Imej Songsang",
       "brightness": "Kecerahan",
       "contrast": "Kontras",
-      "hue": "Rona"
+      "hue": "Rona",
+      "strength": "Kekuatan",
+      "presets": "Pratetapan",
+      "threshold": "Ambang",
+      "gamma": "Gamma",
+      "grayscale": "Hitam Putih",
+      "invert": "Songsang Warna",
+      "enabled": "Aktif",
+      "disabled": "Mati"
     },
     "preview": {
       "eyebrow": "Info Pratonton",
@@ -111,7 +174,8 @@
       "action": "Pilih fail"
     },
     "carousel": {
-      "ariaLabel": "Karusel imej yang diimport"
+      "ariaLabel": "Karusel imej yang diimport",
+      "removeZone": "Seret ke sini untuk padam"
     }
   },
   "language": {

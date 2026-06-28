@@ -13,6 +13,8 @@
     "spriteEditor": "精靈圖編輯器",
     "spriteEditorMerge": "合併",
     "spriteEditorSplit": "拆分",
+    "spriteEditorFrameExtract": "幀提取",
+    "spriteEditorFrameEdit": "幀編輯",
     "imageEditor": "圖片編輯器",
     "imageEditorColorAdjustment": "顏色調整"
   },
@@ -28,6 +30,19 @@
       "padding": "間距",
       "format": "匯出格式"
     },
+    "naming": {
+      "label": "檔案命名",
+      "fileName": "檔案名",
+      "prefix": "前綴",
+      "middle": "中間",
+      "suffix": "後綴",
+      "none": "無",
+      "nonePrefix": "無前綴",
+      "frameIndex": "幀序號",
+      "originalName": "檔案原名稱",
+      "custom": "自訂",
+      "customPlaceholder": "輸入自訂內容"
+    },
     "preview": {
       "eyebrow": "預覽資訊",
       "maxCell": "最大單元尺寸",
@@ -37,7 +52,7 @@
       "background": "背景顏色",
       "backgroundPreset": "將預覽背景設為 {color}",
       "transparent": "透明",
-      "fps": "幹率",
+      "fps": "幀率",
       "mode": "預覽模式",
       "spriteMode": "精靈圖模式",
       "videoMode": "影片預覽"
@@ -45,7 +60,41 @@
     "tabs": {
       "ariaLabel": "精靈圖編輯模式",
       "merge": "合併",
-      "split": "拆分"
+      "split": "拆分",
+      "frameExtract": "幀提取",
+      "frameEdit": "幀編輯"
+    },
+    "frameExtract": {
+      "emptyTitle": "拖放影片或 GIF 到這裡即可匯入",
+      "emptyDescription": "匯入影片或動態 GIF，設定提取幀率後，點擊開始提取再生成序列幀。",
+      "action": "選擇檔案",
+      "fps": "提取幀率",
+      "run": "開始提取",
+      "extracting": "提取中...",
+      "ready": "已載入{type}，準備好後點擊開始提取。",
+      "video": "影片",
+      "gif": "GIF"
+    },
+    "frameEdit": {
+      "emptyTitle": "拖放資料夾、多張圖片或序列幀到這裡即可匯入",
+      "emptyDescription": "匯入完整幀序列後，可以在預覽區重新排序，並在精靈圖與影片預覽之間切換後繼續編輯。",
+      "infoTitle": "幀資訊",
+      "frameCount": "幀數量",
+      "activeFrame": "目前幀",
+      "sequenceSize": "序列尺寸",
+      "aspectRatio": "比例",
+      "aspectNone": "無",
+      "resolution": "解析度",
+      "resolutionNone": "0",
+      "width": "寬",
+      "height": "高",
+      "process": "開始處理",
+      "processMode": "處理方式",
+      "processScale": "尺寸縮放",
+      "processSmartScale": "智慧縮放",
+      "processExtendOnly": "僅擴展",
+      "restore": "還原",
+      "exportAll": "匯出全部"
     },
     "split": {
       "emptyTitle": "拖放圖片到這裡即可匯入",
@@ -85,9 +134,23 @@
       "clear": "清空列表"
     },
     "controls": {
+      "mode": "調整模式",
+      "colorAdjust": "顏色調節",
+      "blackWhite": "黑白圖",
+      "softBlackWhite": "柔和黑白",
+      "hardBlackWhite": "硬黑白",
+      "invertMode": "反轉圖",
       "brightness": "亮度",
       "contrast": "對比度",
-      "hue": "色調"
+      "hue": "色調",
+      "strength": "強度",
+      "presets": "預設",
+      "threshold": "閾值",
+      "gamma": "Gamma",
+      "grayscale": "黑白",
+      "invert": "反轉色",
+      "enabled": "開啟",
+      "disabled": "關閉"
     },
     "preview": {
       "eyebrow": "預覽資訊",
@@ -107,11 +170,12 @@
     },
     "emptyPreview": {
       "title": "拖放多張圖片或整個資料夾到這裡即可匯入",
-      "description": "支援批次匯入後逐張查看，並統一調整亮度、對比度與色調。",
+      "description": "支援批次匯入後逐張查看，並統一調節亮度、對比度與色調。",
       "action": "選擇檔案"
     },
     "carousel": {
-      "ariaLabel": "已導入圖片輪播"
+      "ariaLabel": "已導入圖片輪播",
+      "removeZone": "拖到這裡刪除"
     }
   },
   "language": {

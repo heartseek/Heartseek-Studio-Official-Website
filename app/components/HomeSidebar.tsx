@@ -46,6 +46,16 @@ export default function HomeSidebar({
           href: "/tools/sprite-editor/split",
           label: t("toolNavigation.spriteEditorSplit"),
         },
+        {
+          id: "sprite-editor-frame-extract",
+          href: "/tools/sprite-editor/frame-extract",
+          label: t("toolNavigation.spriteEditorFrameExtract"),
+        },
+        {
+          id: "sprite-editor-frame-edit",
+          href: "/tools/sprite-editor/frame-edit",
+          label: t("toolNavigation.spriteEditorFrameEdit"),
+        },
       ],
     },
     {

@@ -45,11 +45,57 @@
   border-radius: 28px;
 }
 
-.controlsInline {
+.controlsStack {
   display: flex;
   flex: 1 1 auto;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 12px;
+}
+
+.modeField {
+  display: grid;
+  min-width: min(100%, 280px);
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  color: #645c52;
+  font-size: 0.9rem;
+}
+
+.modeField legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.modeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.modeOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #1f1c18;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modeOption input {
+  margin: 0;
+  accent-color: #b96528;
+}
+
+.modeOption:has(input:checked) {
+  border-color: rgba(185, 101, 40, 0.48);
+  background: rgba(255, 227, 199, 0.92);
 }
 
 .field {
@@ -74,6 +120,63 @@
   color: #1f1c18;
   font-size: 0.84rem;
   font-weight: 700;
+}
+
+.controlsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.controlsPresetRow {
+  display: grid;
+  gap: 10px;
+}
+
+.presetHeader {
+  color: #645c52;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.presetButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.modeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #1f1c18;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.modeButton:hover,
+.modeButton:focus-visible {
+  border-color: rgba(185, 101, 40, 0.32);
+  background: rgba(255, 243, 231, 0.92);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.modeButtonActive {
+  border-color: rgba(185, 101, 40, 0.48);
+  background: rgba(255, 227, 199, 0.92);
 }
 
 .toolbarActions {
@@ -468,7 +571,7 @@
     padding: 14px;
   }
 
-  .controlsInline,
+  .controlsStack,
   .toolbarActions {
     width: 100%;
   }

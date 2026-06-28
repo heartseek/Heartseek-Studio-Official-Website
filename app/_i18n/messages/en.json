@@ -13,6 +13,8 @@
     "spriteEditor": "Sprite Editor",
     "spriteEditorMerge": "Merge",
     "spriteEditorSplit": "Split",
+    "spriteEditorFrameExtract": "Frame Extract",
+    "spriteEditorFrameEdit": "Frame Edit",
     "imageEditor": "Image Editor",
     "imageEditorColorAdjustment": "Color Adjustment"
   },
@@ -27,6 +29,19 @@
       "columns": "Columns",
       "padding": "Padding",
       "format": "Export Format"
+    },
+    "naming": {
+      "label": "File Naming",
+      "fileName": "File Name",
+      "prefix": "Prefix",
+      "middle": "Middle",
+      "suffix": "Suffix",
+      "none": "None",
+      "nonePrefix": "No Prefix",
+      "frameIndex": "Frame Index",
+      "originalName": "Original File Name",
+      "custom": "Custom",
+      "customPlaceholder": "Enter custom text"
     },
     "preview": {
       "eyebrow": "Preview Info",
@@ -45,7 +60,41 @@
     "tabs": {
       "ariaLabel": "Sprite editor mode",
       "merge": "Merge",
-      "split": "Split"
+      "split": "Split",
+      "frameExtract": "Frame Extract",
+      "frameEdit": "Frame Edit"
+    },
+    "frameExtract": {
+      "emptyTitle": "Drop a video or GIF here to import",
+      "emptyDescription": "Import a video or animated GIF, set the extraction FPS, then click start to extract frames.",
+      "action": "Choose file",
+      "fps": "Extraction FPS",
+      "run": "Start Extract",
+      "extracting": "Extracting...",
+      "ready": "{type} loaded. Click start extract when ready.",
+      "video": "Video",
+      "gif": "GIF"
+    },
+    "frameEdit": {
+      "emptyTitle": "Drop a folder, multiple images, or sequence frames here to import",
+      "emptyDescription": "Import a full frame sequence, reorder frames in the preview, and switch between sprite-sheet and video preview before further editing.",
+      "infoTitle": "Frame Info",
+      "frameCount": "Frames",
+      "activeFrame": "Active Frame",
+      "sequenceSize": "Sequence Size",
+      "aspectRatio": "Aspect Ratio",
+      "aspectNone": "None",
+      "resolution": "Resolution",
+      "resolutionNone": "0",
+      "width": "Width",
+      "height": "Height",
+      "process": "Start Processing",
+      "processMode": "Process Mode",
+      "processScale": "Scale to Size",
+      "processSmartScale": "Smart Scale",
+      "processExtendOnly": "Extend Only",
+      "restore": "Restore",
+      "exportAll": "Export All"
     },
     "split": {
       "emptyTitle": "Drop an image here to import",
@@ -85,9 +134,23 @@
       "clear": "Clear List"
     },
     "controls": {
+      "mode": "Adjustment Mode",
+      "colorAdjust": "Color Adjust",
+      "blackWhite": "Black & White",
+      "softBlackWhite": "Soft Black & White",
+      "hardBlackWhite": "Hard Black & White",
+      "invertMode": "Invert",
       "brightness": "Brightness",
       "contrast": "Contrast",
-      "hue": "Hue"
+      "hue": "Hue",
+      "strength": "Strength",
+      "presets": "Presets",
+      "threshold": "Threshold",
+      "gamma": "Gamma",
+      "grayscale": "Grayscale",
+      "invert": "Invert Colors",
+      "enabled": "On",
+      "disabled": "Off"
     },
     "preview": {
       "eyebrow": "Preview Info",
@@ -111,7 +174,8 @@
       "action": "Choose files"
     },
     "carousel": {
-      "ariaLabel": "Imported image carousel"
+      "ariaLabel": "Imported image carousel",
+      "removeZone": "Drag here to delete"
     }
   },
   "language": {

@@ -13,6 +13,8 @@
     "spriteEditor": "精灵图编辑器",
     "spriteEditorMerge": "合并",
     "spriteEditorSplit": "拆分",
+    "spriteEditorFrameExtract": "帧提取",
+    "spriteEditorFrameEdit": "帧编辑",
     "imageEditor": "图片编辑器",
     "imageEditorColorAdjustment": "颜色调整"
   },
@@ -27,6 +29,19 @@
       "columns": "列数",
       "padding": "间距",
       "format": "导出格式"
+    },
+    "naming": {
+      "label": "文件命名",
+      "fileName": "文件名",
+      "prefix": "前缀",
+      "middle": "中间",
+      "suffix": "后缀",
+      "none": "无",
+      "nonePrefix": "无前缀",
+      "frameIndex": "帧序号",
+      "originalName": "文件原名称",
+      "custom": "自定义",
+      "customPlaceholder": "输入自定义内容"
     },
     "preview": {
       "eyebrow": "预览信息",
@@ -45,7 +60,41 @@
     "tabs": {
       "ariaLabel": "精灵图编辑模式",
       "merge": "合并",
-      "split": "拆分"
+      "split": "拆分",
+      "frameExtract": "帧提取",
+      "frameEdit": "帧编辑"
+    },
+    "frameExtract": {
+      "emptyTitle": "拖放视频或 GIF 到这里即可导入",
+      "emptyDescription": "导入视频或动态 GIF，设置提取帧率后，点击开始提取再生成序列帧。",
+      "action": "选择文件",
+      "fps": "提取帧率",
+      "run": "开始提取",
+      "extracting": "提取中...",
+      "ready": "已载入{type}，准备好后点击开始提取。",
+      "video": "视频",
+      "gif": "GIF"
+    },
+    "frameEdit": {
+      "emptyTitle": "拖放文件夹、多张图片或序列帧到这里即可导入",
+      "emptyDescription": "导入完整帧序列后，可以在预览区重新排序，并在精灵图与视频预览之间切换后继续编辑。",
+      "infoTitle": "帧信息",
+      "frameCount": "帧数量",
+      "activeFrame": "当前帧",
+      "sequenceSize": "序列尺寸",
+      "aspectRatio": "比例",
+      "aspectNone": "无",
+      "resolution": "分辨率",
+      "resolutionNone": "0",
+      "width": "宽",
+      "height": "高",
+      "process": "开始处理",
+      "processMode": "处理方式",
+      "processScale": "尺寸缩放",
+      "processSmartScale": "智能缩放",
+      "processExtendOnly": "仅扩展",
+      "restore": "还原",
+      "exportAll": "导出全部"
     },
     "split": {
       "emptyTitle": "拖放图片到这里即可导入",
@@ -85,9 +134,23 @@
       "clear": "清空列表"
     },
     "controls": {
+      "mode": "调整模式",
+      "colorAdjust": "颜色调节",
+      "blackWhite": "黑白图",
+      "softBlackWhite": "柔和黑白",
+      "hardBlackWhite": "硬黑白",
+      "invertMode": "反转图",
       "brightness": "亮度",
       "contrast": "对比度",
-      "hue": "色调"
+      "hue": "色调",
+      "strength": "强度",
+      "presets": "预设",
+      "threshold": "阈值",
+      "gamma": "Gamma",
+      "grayscale": "黑白",
+      "invert": "反转色",
+      "enabled": "开启",
+      "disabled": "关闭"
     },
     "preview": {
       "eyebrow": "预览信息",
@@ -111,7 +174,8 @@
       "action": "选择文件"
     },
     "carousel": {
-      "ariaLabel": "已导入图片轮播"
+      "ariaLabel": "已导入图片轮播",
+      "removeZone": "拖到这里删除"
     }
   },
   "language": {

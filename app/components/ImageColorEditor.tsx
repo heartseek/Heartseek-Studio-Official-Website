@@ -65,9 +65,16 @@ export default function ImageColorEditor() {
   const [images, setImages] = useState<ImportedImage[]>([]);
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [brightness, setBrightness] = useState(0);
-  const [contrast, setContrast] = useState(0);
-  const [hue, setHue] = useState(0);
+  const [colorBrightness, setColorBrightness] = useState(0);
+  const [colorContrast, setColorContrast] = useState(0);
+  const [colorHue, setColorHue] = useState(0);
+  const [effectMode, setEffectMode] = useState<"color" | "grayscale" | "invert">("color");
+  const [grayscalePreset, setGrayscalePreset] = useState<"soft" | "hard" | null>("soft");
+  const [grayscaleBrightness, setGrayscaleBrightness] = useState(0);
+  const [grayscaleContrast, setGrayscaleContrast] = useState(0);
+  const [grayscaleThreshold, setGrayscaleThreshold] = useState(50);
+  const [grayscaleGamma, setGrayscaleGamma] = useState(100);
+  const [invertStrength, setInvertStrength] = useState(100);
   const [comparePosition, setComparePosition] = useState(50);
   const [previewBackgroundColor, setPreviewBackgroundColor] = useState<string>(
     TRANSPARENT_PREVIEW_BACKGROUND,
@@ -75,6 +82,7 @@ export default function ImageColorEditor() {
   const [previewPickerColor, setPreviewPickerColor] = useState(
     `${DEFAULT_PREVIEW_BACKGROUND}ff`,
   );
+  const [adjustedPreviewUrl, setAdjustedPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     imagesRef.current = images;
@@ -131,9 +139,6 @@ export default function ImageColorEditor() {
     1,
     Math.round((activeImage?.height ?? 1) * previewScale),
   );
-  const previewFilter = `brightness(${100 + brightness}%) contrast(${
-    100 + contrast
-  }%) hue-rotate(${hue}deg)`;
   const carouselItems = useMemo<ImageCarouselItem[]>(
     () =>
       images.map((image) => ({
@@ -144,6 +149,62 @@ export default function ImageColorEditor() {
       })),
     [images],
   );
+
+  useEffect(() => {
+    if (!activeImage) {
+      return undefined;
+    }
+
+    let isCancelled = false;
+    let debounceTimer: number | null = null;
+    let currentUrl: string | null = null;
+
+    debounceTimer = window.setTimeout(() => {
+      void (async () => {
+        const blob = await createAdjustedImageBlob(activeImage, {
+          colorBrightness,
+          colorContrast,
+          colorHue,
+          effectMode,
+          grayscalePreset,
+          grayscaleBrightness,
+          grayscaleContrast,
+          grayscaleThreshold,
+          grayscaleGamma,
+          invertStrength,
+        });
+
+        if (!blob || isCancelled) {
+          return;
+        }
+
+        currentUrl = URL.createObjectURL(blob);
+        setAdjustedPreviewUrl(currentUrl);
+      })();
+    }, 100);
+
+    return () => {
+      isCancelled = true;
+      if (debounceTimer) {
+        window.clearTimeout(debounceTimer);
+      }
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl);
+      }
+    };
+  }, [
+    activeImage,
+    colorBrightness,
+    colorContrast,
+    colorHue,
+    effectMode,
+    grayscaleBrightness,
+    grayscaleContrast,
+    grayscaleGamma,
+    grayscalePreset,
+    grayscaleThreshold,
+    invertStrength,
+  ]);
 
   function applyPreviewBackgroundColor(color: string) {
     if (color === TRANSPARENT_PREVIEW_BACKGROUND) {
@@ -202,10 +263,74 @@ export default function ImageColorEditor() {
     setActiveImageId(null);
   }
 
+  function reorderImages(nextItems: ImageCarouselItem[]) {
+    setImages((current) => {
+      const currentMap = new Map(current.map((image) => [image.id, image]));
+      return nextItems
+        .map((item) => currentMap.get(item.id))
+        .filter((image): image is ImportedImage => image !== undefined);
+    });
+  }
+
+  function removeImageById(imageId: string | number) {
+    const targetId = String(imageId);
+
+    setImages((current) => {
+      const nextImages = current.filter((image) => image.id !== targetId);
+      const removedImage = current.find((image) => image.id === targetId);
+
+      if (removedImage) {
+        URL.revokeObjectURL(removedImage.url);
+      }
+
+      setActiveImageId((currentActiveId) => {
+        if (currentActiveId !== targetId) {
+          return currentActiveId;
+        }
+
+        if (nextImages.length === 0) {
+          return null;
+        }
+
+        const removedIndex = current.findIndex((image) => image.id === targetId);
+        const fallbackIndex = Math.min(
+          removedIndex,
+          Math.max(0, nextImages.length - 1),
+        );
+
+        return nextImages[fallbackIndex]?.id ?? nextImages[0]?.id ?? null;
+      });
+
+      return nextImages;
+    });
+  }
+
   function resetAdjustments() {
-    setBrightness(0);
-    setContrast(0);
-    setHue(0);
+    setColorBrightness(0);
+    setColorContrast(0);
+    setColorHue(0);
+    setGrayscalePreset("soft");
+    setGrayscaleBrightness(0);
+    setGrayscaleContrast(0);
+    setGrayscaleThreshold(0);
+    setGrayscaleGamma(100);
+    setInvertStrength(100);
+  }
+
+  function applyGrayscalePreset(nextPreset: "soft" | "hard") {
+    setGrayscalePreset(nextPreset);
+    if (nextPreset === "soft") {
+      setGrayscaleBrightness(0);
+      setGrayscaleContrast(0);
+      setGrayscaleThreshold(0);
+      setGrayscaleGamma(100);
+      return;
+    }
+
+    setGrayscaleBrightness(10);
+    setGrayscaleContrast(30);
+    setGrayscaleThreshold(85);
+    setGrayscaleGamma(110);
   }
 
   async function exportAllImages() {
@@ -216,9 +341,18 @@ export default function ImageColorEditor() {
     if (images.length === 1) {
       const blob = await createAdjustedImageBlob(
         images[0],
-        brightness,
-        contrast,
-        hue,
+        {
+          colorBrightness,
+          colorContrast,
+          colorHue,
+          effectMode,
+          grayscalePreset,
+          grayscaleBrightness,
+          grayscaleContrast,
+          grayscaleThreshold,
+          grayscaleGamma,
+          invertStrength,
+        },
       );
 
       if (!blob) {
@@ -234,9 +368,18 @@ export default function ImageColorEditor() {
     for (const image of images) {
       const blob = await createAdjustedImageBlob(
         image,
-        brightness,
-        contrast,
-        hue,
+        {
+          colorBrightness,
+          colorContrast,
+          colorHue,
+          effectMode,
+          grayscalePreset,
+          grayscaleBrightness,
+          grayscaleContrast,
+          grayscaleThreshold,
+          grayscaleGamma,
+          invertStrength,
+        },
       );
 
       if (!blob) {
@@ -295,42 +438,189 @@ export default function ImageColorEditor() {
       <section className={styles.layout}>
         <section className={styles.workspace}>
           <div className={styles.canvasToolbar}>
-            <div className={styles.controlsInline}>
-              <label className={styles.field}>
-                <span>{t("controls.brightness")}</span>
-                <input
-                  max={100}
-                  min={-100}
-                  onChange={(event) => setBrightness(Number(event.target.value))}
-                  type="range"
-                  value={brightness}
-                />
-                <span className={styles.fieldValue}>{brightness}%</span>
-              </label>
+            <div className={styles.controlsStack}>
+              <fieldset className={styles.modeField}>
+                <legend>{t("controls.mode")}</legend>
+                <div className={styles.modeOptions}>
+                  <label className={styles.modeOption}>
+                    <input
+                      checked={effectMode === "color"}
+                      onChange={() => setEffectMode("color")}
+                      type="radio"
+                      name="image-adjust-mode"
+                    />
+                    <span>{t("controls.colorAdjust")}</span>
+                  </label>
+                  <label className={styles.modeOption}>
+                    <input
+                      checked={effectMode === "grayscale"}
+                      onChange={() => setEffectMode("grayscale")}
+                      type="radio"
+                      name="image-adjust-mode"
+                    />
+                    <span>{t("controls.blackWhite")}</span>
+                  </label>
+                  <label className={styles.modeOption}>
+                    <input
+                      checked={effectMode === "invert"}
+                      onChange={() => setEffectMode("invert")}
+                      type="radio"
+                      name="image-adjust-mode"
+                    />
+                    <span>{t("controls.invertMode")}</span>
+                  </label>
+                </div>
+              </fieldset>
 
-              <label className={styles.field}>
-                <span>{t("controls.contrast")}</span>
-                <input
-                  max={100}
-                  min={-100}
-                  onChange={(event) => setContrast(Number(event.target.value))}
-                  type="range"
-                  value={contrast}
-                />
-                <span className={styles.fieldValue}>{contrast}%</span>
-              </label>
+              <div className={styles.controlsRow}>
+                {effectMode === "color" ? (
+                  <>
+                  <label className={styles.field}>
+                    <span>{t("controls.brightness")}</span>
+                    <input
+                      max={100}
+                      min={-100}
+                      onChange={(event) =>
+                        setColorBrightness(Number(event.target.value))
+                      }
+                      type="range"
+                      value={colorBrightness}
+                    />
+                    <span className={styles.fieldValue}>{colorBrightness}%</span>
+                  </label>
 
-              <label className={styles.field}>
-                <span>{t("controls.hue")}</span>
-                <input
-                  max={180}
-                  min={-180}
-                  onChange={(event) => setHue(Number(event.target.value))}
-                  type="range"
-                  value={hue}
-                />
-                <span className={styles.fieldValue}>{hue}deg</span>
-              </label>
+                  <label className={styles.field}>
+                    <span>{t("controls.contrast")}</span>
+                    <input
+                      max={100}
+                      min={-100}
+                      onChange={(event) => setColorContrast(Number(event.target.value))}
+                      type="range"
+                      value={colorContrast}
+                    />
+                    <span className={styles.fieldValue}>{colorContrast}%</span>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>{t("controls.hue")}</span>
+                    <input
+                      max={180}
+                      min={-180}
+                      onChange={(event) => setColorHue(Number(event.target.value))}
+                      type="range"
+                      value={colorHue}
+                    />
+                    <span className={styles.fieldValue}>{colorHue}deg</span>
+                  </label>
+                  </>
+                ) : null}
+
+                {effectMode === "grayscale" ? (
+                  <>
+                  <label className={styles.field}>
+                    <span>{t("controls.brightness")}</span>
+                    <input
+                      max={100}
+                      min={-100}
+                      onChange={(event) => {
+                        setGrayscalePreset(null);
+                        setGrayscaleBrightness(Number(event.target.value));
+                      }}
+                      type="range"
+                      value={grayscaleBrightness}
+                    />
+                    <span className={styles.fieldValue}>{grayscaleBrightness}%</span>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>{t("controls.contrast")}</span>
+                    <input
+                      max={100}
+                      min={-100}
+                      onChange={(event) => {
+                        setGrayscalePreset(null);
+                        setGrayscaleContrast(Number(event.target.value));
+                      }}
+                      type="range"
+                      value={grayscaleContrast}
+                    />
+                    <span className={styles.fieldValue}>{grayscaleContrast}%</span>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>{t("controls.threshold")}</span>
+                    <input
+                      max={100}
+                      min={0}
+                      onChange={(event) => {
+                        setGrayscalePreset(null);
+                        setGrayscaleThreshold(Number(event.target.value));
+                      }}
+                      type="range"
+                      value={grayscaleThreshold}
+                    />
+                    <span className={styles.fieldValue}>{grayscaleThreshold}%</span>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>{t("controls.gamma")}</span>
+                    <input
+                      max={300}
+                      min={50}
+                      onChange={(event) => {
+                        setGrayscalePreset(null);
+                        setGrayscaleGamma(Number(event.target.value));
+                      }}
+                      type="range"
+                      value={grayscaleGamma}
+                    />
+                    <span className={styles.fieldValue}>
+                      {(grayscaleGamma / 100).toFixed(2)}x
+                    </span>
+                  </label>
+                  </>
+                ) : null}
+
+                {effectMode === "invert" ? (
+                  <label className={styles.field}>
+                    <span>{t("controls.strength")}</span>
+                    <input
+                      max={100}
+                      min={0}
+                      onChange={(event) => setInvertStrength(Number(event.target.value))}
+                      type="range"
+                      value={invertStrength}
+                    />
+                    <span className={styles.fieldValue}>{invertStrength}%</span>
+                  </label>
+                ) : null}
+              </div>
+
+              {effectMode === "grayscale" ? (
+                <div className={styles.controlsPresetRow}>
+                  <div className={styles.presetHeader}>{t("controls.presets")}</div>
+                  <div className={styles.presetButtons}>
+                    <button
+                      className={`${styles.modeButton} ${
+                        grayscalePreset === "soft" ? styles.modeButtonActive : ""
+                      }`}
+                      onClick={() => applyGrayscalePreset("soft")}
+                      type="button"
+                    >
+                      {t("controls.softBlackWhite")}
+                    </button>
+                    <button
+                      className={`${styles.modeButton} ${
+                        grayscalePreset === "hard" ? styles.modeButtonActive : ""
+                      }`}
+                      onClick={() => applyGrayscalePreset("hard")}
+                      type="button"
+                    >
+                      {t("controls.hardBlackWhite")}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className={styles.toolbarActions}>
@@ -400,11 +690,10 @@ export default function ImageColorEditor() {
                         className={styles.previewImage}
                         draggable={false}
                         height={previewHeight}
-                        src={activeImage.url}
+                        src={adjustedPreviewUrl ?? activeImage.url}
                         style={{
                           width: `${previewWidth}px`,
                           height: `${previewHeight}px`,
-                          filter: previewFilter,
                         }}
                         width={previewWidth}
                       />
@@ -453,10 +742,15 @@ export default function ImageColorEditor() {
             <ImageCarousel
               ariaLabel={t("carousel.ariaLabel")}
               activeId={activeImageId}
+              draggable
               imageHeight={112}
               imageWidth={112}
               items={carouselItems}
+              onRemove={removeImageById}
+              onReorder={reorderImages}
               onSelect={(index) => setActiveImageId(images[index]?.id ?? null)}
+              removableByDrag
+              removeZoneLabel={t("carousel.removeZone")}
             />
           </div>
 
@@ -473,7 +767,17 @@ export default function ImageColorEditor() {
                 />
                 <InfoCard
                   label={t("preview.filter")}
-                  value={`${brightness}% / ${contrast}% / ${hue}deg`}
+                  value={`${colorBrightness}% / ${colorContrast}% / ${colorHue}deg / ${
+                    effectMode === "grayscale"
+                      ? grayscalePreset === "soft"
+                        ? t("controls.softBlackWhite")
+                        : grayscalePreset === "hard"
+                          ? t("controls.hardBlackWhite")
+                          : t("controls.blackWhite")
+                      : "-"
+                  } / ${
+                    effectMode === "invert" ? `${t("controls.invertMode")} ${invertStrength}%` : "-"
+                  }`}
                 />
               </div>
             </div>
@@ -686,9 +990,7 @@ function createImageId() {
 
 async function createAdjustedImageBlob(
   image: ImportedImage,
-  brightness: number,
-  contrast: number,
-  hue: number,
+  settings: ImageAdjustmentSettings,
 ) {
   const canvas = document.createElement("canvas");
   canvas.width = image.width;
@@ -699,14 +1001,102 @@ async function createAdjustedImageBlob(
     return null;
   }
 
-  ctx.filter = `brightness(${100 + brightness}%) contrast(${
-    100 + contrast
-  }%) hue-rotate(${hue}deg)`;
   ctx.drawImage(image.image, 0, 0, image.width, image.height);
+  const imageData = ctx.getImageData(0, 0, image.width, image.height);
+  const data = imageData.data;
+
+  applyImageAdjustments(data, settings);
+  ctx.putImageData(imageData, 0, 0);
 
   return new Promise<Blob | null>((resolve) => {
     canvas.toBlob((blob) => resolve(blob), getExportMimeType(image.name));
   });
+}
+
+type ImageAdjustmentSettings = {
+  colorBrightness: number;
+  colorContrast: number;
+  colorHue: number;
+  effectMode: "color" | "grayscale" | "invert";
+  grayscalePreset: "soft" | "hard" | null;
+  grayscaleBrightness: number;
+  grayscaleContrast: number;
+  grayscaleThreshold: number;
+  grayscaleGamma: number;
+  invertStrength: number;
+};
+
+function applyImageAdjustments(data: Uint8ClampedArray, settings: ImageAdjustmentSettings) {
+  const brightnessFactor = 1 + settings.colorBrightness / 100;
+  const contrastFactor = 1 + settings.colorContrast / 100;
+  const hueRadians = (settings.colorHue * Math.PI) / 180;
+  const invertAmount = settings.effectMode === "invert" ? settings.invertStrength / 100 : 0;
+  const grayscaleBrightnessFactor = 1 + settings.grayscaleBrightness / 100;
+  const grayscaleContrastFactor = 1 + settings.grayscaleContrast / 100;
+  const gamma = Math.max(0.1, settings.grayscaleGamma / 100);
+  const thresholdMix = settings.grayscaleThreshold / 100;
+
+  for (let index = 0; index < data.length; index += 4) {
+    let r = data[index] / 255;
+    let g = data[index + 1] / 255;
+    let b = data[index + 2] / 255;
+
+    if (settings.effectMode === "grayscale") {
+      const baseGray = 0.299 * r + 0.587 * g + 0.114 * b;
+      let gray = baseGray * grayscaleBrightnessFactor;
+      gray = (gray - 0.5) * grayscaleContrastFactor + 0.5;
+      gray = Math.min(1, Math.max(0, gray));
+      gray = Math.pow(gray, 1 / gamma);
+      const binaryGray = gray >= thresholdMix ? 1 : 0;
+      if (settings.grayscalePreset === "hard") {
+        gray = gray * 0.25 + binaryGray * 0.75;
+      }
+      r = gray;
+      g = gray;
+      b = gray;
+    } else {
+      const { red, green, blue } = applyHueRotation(r, g, b, hueRadians);
+      r = clamp01(red * brightnessFactor);
+      g = clamp01(green * brightnessFactor);
+      b = clamp01(blue * brightnessFactor);
+      r = clamp01((r - 0.5) * contrastFactor + 0.5);
+      g = clamp01((g - 0.5) * contrastFactor + 0.5);
+      b = clamp01((b - 0.5) * contrastFactor + 0.5);
+    }
+
+    if (invertAmount > 0) {
+      r = r * (1 - invertAmount) + (1 - r) * invertAmount;
+      g = g * (1 - invertAmount) + (1 - g) * invertAmount;
+      b = b * (1 - invertAmount) + (1 - b) * invertAmount;
+    }
+
+    data[index] = Math.round(clamp01(r) * 255);
+    data[index + 1] = Math.round(clamp01(g) * 255);
+    data[index + 2] = Math.round(clamp01(b) * 255);
+  }
+}
+
+function applyHueRotation(r: number, g: number, b: number, radians: number) {
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  return {
+    red:
+      r * (0.213 + cos * 0.787 - sin * 0.213) +
+      g * (0.715 - cos * 0.715 - sin * 0.715) +
+      b * (0.072 - cos * 0.072 + sin * 0.928),
+    green:
+      r * (0.213 - cos * 0.213 + sin * 0.143) +
+      g * (0.715 + cos * 0.285 + sin * 0.140) +
+      b * (0.072 - cos * 0.072 - sin * 0.283),
+    blue:
+      r * (0.213 - cos * 0.213 - sin * 0.787) +
+      g * (0.715 - cos * 0.715 + sin * 0.715) +
+      b * (0.072 + cos * 0.928 + sin * 0.072),
+  };
+}
+
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
 }
 
 function downloadBlob(blob: Blob, filename: string) {

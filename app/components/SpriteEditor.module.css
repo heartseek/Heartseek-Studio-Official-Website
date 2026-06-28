@@ -124,9 +124,9 @@
   --tab-padding: 6px;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--tab-gap);
-  min-width: 220px;
+  min-width: 420px;
   padding: var(--tab-padding);
   border: 1px solid rgba(26, 24, 21, 0.08);
   border-radius: 999px;
@@ -171,7 +171,7 @@
   position: absolute;
   top: var(--tab-padding);
   left: var(--tab-padding);
-  width: calc((100% - (var(--tab-padding) * 2) - var(--tab-gap)) / 2);
+  width: calc((100% - (var(--tab-padding) * 2) - (var(--tab-gap) * 3)) / 4);
   height: calc(100% - (var(--tab-padding) * 2));
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.96);
@@ -183,6 +183,14 @@
 
 .tabIndicatorSplit {
   transform: translateX(calc(100% + var(--tab-gap)));
+}
+
+.tabIndicatorFrameEdit {
+  transform: translateX(calc((100% + var(--tab-gap)) * 3));
+}
+
+.tabIndicatorFrameExtract {
+  transform: translateX(calc((100% + var(--tab-gap)) * 2));
 }
 
 @keyframes tabGlowBreath {
@@ -206,16 +214,24 @@
 
 .tabPanels {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 100%));
+  grid-template-columns: repeat(4, minmax(0, 100%));
   align-items: start;
-  width: 200%;
+  width: 400%;
   transform: translateX(0);
   transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
 .tabPanelsShifted {
-  transform: translateX(-50%);
+  transform: translateX(calc(-100% / 4));
+}
+
+.tabPanelsFrameExtract {
+  transform: translateX(calc(-200% / 4));
+}
+
+.tabPanelsFrameEdit {
+  transform: translateX(calc(-300% / 4));
 }
 
 .tabPanel {
@@ -260,6 +276,188 @@
   gap: 12px;
 }
 
+.fileNamingRow {
+  display: grid;
+  flex: 1 1 100%;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fileNamingHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+}
+
+.fileNamingHeaderSplit {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.fileNamingSpacer {
+  display: block;
+  min-height: 1px;
+}
+
+.fileNamingHeaderRight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+}
+
+.fileNamingLabel {
+  color: #645c52;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.fileNamingPreview {
+  color: #8a6e55;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.fileNamingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fileNamingGridSingle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.fileNamingGridSplit {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.fileNameField {
+  display: grid;
+  gap: 8px;
+  color: #645c52;
+  font-size: 0.9rem;
+}
+
+.fileNameField span {
+  font-weight: 700;
+}
+
+.fileNameFieldControl {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  height: 44px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.fileNameFieldControl:focus-within {
+  border-color: rgba(185, 101, 40, 0.55);
+  box-shadow: 0 0 0 3px rgba(185, 101, 40, 0.08);
+}
+
+.fileNameSelectionValue,
+.fileNameCustomInput {
+  min-height: 0;
+  min-width: 0;
+  padding: 0 14px;
+  color: #1f1c18;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.fileNameSelectionValue {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileNameFieldSelectFull {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: calc(100% - 46px);
+  border: 0;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  opacity: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.fileNameCustomInput {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  outline: none;
+}
+
+.fileNameCustomInput::placeholder {
+  color: #9c8d7c;
+}
+
+.fileNameFieldSelectWrap {
+  position: relative;
+  width: 46px;
+  border-left: 1px solid rgba(26, 24, 21, 0.08);
+  background: rgba(252, 249, 245, 0.92);
+}
+
+.fileNameFieldSelect {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  opacity: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.fileNameFieldSelect option {
+  color: #1f1c18;
+  background: #fffdf8;
+}
+
+.fileNameFieldSelectFull option {
+  color: #1f1c18;
+  background: #fffdf8;
+}
+
+.fileNameFieldChevron {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: #7a6957;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
 .toolbarActions {
   display: flex;
   flex: 0 0 auto;
@@ -283,8 +481,7 @@
   font-weight: 700;
 }
 
-.field input,
-.field select {
+.field input {
   height: 44px;
   border: 1px solid rgba(26, 24, 21, 0.12);
   border-radius: 16px;
@@ -296,9 +493,106 @@
   transition: border-color 0.2s ease;
 }
 
-.field input:focus,
-.field select:focus {
+.field input:focus {
   border-color: rgba(185, 101, 40, 0.55);
+}
+
+.selectField {
+  position: relative;
+  display: grid;
+  min-height: 44px;
+  border: 1px solid rgba(26, 24, 21, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.selectField:focus-within {
+  border-color: rgba(185, 101, 40, 0.55);
+  box-shadow: 0 0 0 3px rgba(185, 101, 40, 0.08);
+}
+
+.selectFieldNative {
+  width: 100%;
+  height: 44px;
+  min-width: 0;
+  padding: 0 46px 0 14px;
+  border: 0;
+  background: transparent;
+  color: #1f1c18;
+  font: inherit;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.selectFieldNative option {
+  color: #1f1c18;
+  background: #fffdf8;
+}
+
+.selectFieldChevron {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  color: #7a6957;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.splitCompactField {
+  flex: 0 0 112px;
+}
+
+.splitCompactField input {
+  width: 100%;
+  min-width: 0;
+}
+
+.splitFormatField .selectField {
+  min-height: 44px;
+}
+
+.frameEditSliderField {
+  flex: 1 1 220px;
+  min-width: 220px;
+}
+
+.frameEditProcessField {
+  flex: 0 0 220px;
+}
+
+.frameEditControls {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 12px;
+  min-width: 0;
+}
+
+.frameEditControlsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.frameEditActionField {
+  flex: 0 0 auto;
+  align-self: end;
+}
+
+.frameEditFillPanelWrap {
+  width: min(100%, 320px);
+}
+
+.frameEditFooter {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 4px;
 }
 
 .infoCard,
@@ -382,6 +676,11 @@
 .previewModeButton:focus-visible {
   color: #1f1c18;
   outline: none;
+}
+
+.previewModeButtonActive:hover,
+.previewModeButtonActive:focus-visible {
+  color: #4a78ff;
 }
 
 .previewModeButtonActive {
@@ -543,6 +842,44 @@
   background: transparent;
 }
 
+.previewStageViewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.previewStagePanels {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.previewStagePanelsShifted {
+  transform: translateX(-100%);
+}
+
+.previewStagePanelsSplitResults {
+  transform: translateX(-100%);
+}
+
+.previewStagePanelsSplitVideo {
+  transform: translateX(-200%);
+}
+
+.previewStagePanel {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  overflow: auto;
+}
+
 .splitPanel {
   display: flex;
 }
@@ -557,20 +894,20 @@
   position: relative;
   display: block;
   flex: 0 0 auto;
-  transform-origin: top left;
+  max-width: 100%;
+  max-height: 100%;
+  transform-origin: center center;
 }
 
 .splitPreviewImage {
   display: block;
-  width: auto;
-  height: auto;
-  max-width: none;
-  max-height: none;
+  width: 100%;
+  height: 100%;
 }
 
 .splitCanvasViewport {
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
 }
 
 .splitSliceOverlay {
@@ -634,6 +971,12 @@
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.58);
   box-shadow: 0 24px 80px rgba(52, 42, 31, 0.06);
+}
+
+.splitResultsPreview {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 1000px);
 }
 
 .splitResultsHeader {
@@ -812,39 +1155,64 @@
 
 .canvasViewportFilled {
   align-items: flex-start;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .previewCanvasStage {
   display: block;
   flex: 0 0 auto;
-  min-width: max-content;
-  min-height: max-content;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .videoPreviewImage {
   display: block;
-  max-width: none;
-  max-height: none;
+  width: auto;
+  max-width: min(100%, 100%);
+  max-height: min(100%, 100%);
   object-fit: contain;
 }
 
 .videoPreviewStage {
   display: grid;
   justify-items: center;
-  gap: 12px;
   width: 100%;
+  height: 100%;
   max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
-.videoPreviewMeta {
+.videoPreviewPanel {
   display: grid;
-  gap: 4px;
+  gap: 12px;
   justify-items: center;
-  color: #645c52;
-  font-size: 0.84rem;
-  font-weight: 700;
-  text-align: center;
+}
+
+.videoPreviewCarouselWrap {
+  display: grid;
+  width: min(100%, 720px);
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-14px);
+  transform-origin: top center;
+  pointer-events: none;
+  transition:
+    max-height 0.28s ease,
+    opacity 0.24s ease,
+    transform 0.28s ease;
+}
+
+.videoPreviewCarouselWrapExpanded {
+  max-height: 240px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.videoPreviewCarouselWrap :global(section[class*="carousel"]) {
+  width: 100%;
 }
 
 .videoPreviewControls {
@@ -1167,6 +1535,22 @@
 
   .toolbarActions {
     flex-direction: column;
+  }
+
+  .fileNamingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fileNamingGridSplit {
+    grid-template-columns: 1fr;
+  }
+
+  .fileNamingHeaderSplit {
+    grid-template-columns: 1fr;
+  }
+
+  .fileNamingSpacer {
+    display: none;
   }
 
   .carouselControls {
