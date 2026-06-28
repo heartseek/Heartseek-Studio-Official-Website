@@ -14,79 +14,41 @@ import {
   SortableContext,
   arrayMove,
   rectSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import JSZip from "jszip";
 import { decompressFrames, parseGIF } from "gifuct-js";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { BsCameraVideoFill, BsGrid3X3GapFill } from "react-icons/bs";
-import { FaChevronDown } from "react-icons/fa";
 import { FaPause, FaPlay, FaStepBackward, FaStepForward } from "react-icons/fa";
 import { FaDownload, FaTrashAlt } from "react-icons/fa";
 import { PiRectangleDashedDuotone } from "react-icons/pi";
-import { HexAlphaColorPicker } from "react-colorful";
 import ImageCarousel from "./ImageCarousel";
 import styles from "./SpriteEditor.module.css";
-
-type MergeFrame = {
-  id: string;
-  name: string;
-  url: string;
-  image: HTMLImageElement;
-  originalUrl: string;
-  originalImage: HTMLImageElement;
-  width: number;
-  height: number;
-};
-
-type SplitSource = {
-  id: string;
-  name: string;
-  url: string;
-  image: HTMLImageElement;
-  width: number;
-  height: number;
-};
-
-type FrameExtractSource = {
-  id: string;
-  name: string;
-  url: string;
-  file: File;
-  type: "video" | "gif";
-};
-
-type SplitMode = "grid" | "size" | "smart";
-type SplitPreviewMode = "preview" | "results" | "video";
-type FrameEditAspectPreset = "none" | "1:1" | "4:3" | "3:4" | "16:9" | "9:16";
-type FrameEditProcessMode = "scale" | "smartScale" | "extendOnly";
-
-type SplitSlice = {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  pixelCount?: number;
-  previewUrl?: string;
-};
-
-type SplitExecutionConfig = {
-  mode: SplitMode;
-  rows: number;
-  columns: number;
-  cellWidth: number;
-  cellHeight: number;
-  alphaThreshold: number;
-  minArea: number;
-};
-
-type DirectoryInputProps = {
-  directory?: string;
-  webkitdirectory?: string;
-};
+import {
+  FileNameSegmentField,
+  InfoCard,
+  PreviewBackgroundColorPanel,
+  SelectField,
+  SortablePreviewTile,
+} from "./sprite-editor/SpriteEditorParts";
+import type {
+  DirectoryInputProps,
+  FileNameSegmentConfig,
+  FileNameSegmentOption,
+  FrameEditAspectPreset,
+  FrameEditProcessMode,
+  FrameExtractSource,
+  MergeFrame,
+  PreviewMode,
+  SplitExecutionConfig,
+  SplitMode,
+  SplitPreviewMode,
+  SplitSlice,
+  SplitSource,
+  SpriteEditorTab,
+  ViewportSize,
+} from "./sprite-editor/shared";
 
 type DroppedEntry = {
   isDirectory: boolean;
@@ -111,22 +73,6 @@ type DroppedDirectoryReader = {
   ) => void;
 };
 
-type ViewportSize = {
-  width: number;
-  height: number;
-};
-
-type FileNameSegmentType = "none" | "frameIndex" | "originalName" | "custom";
-
-type FileNameSegmentConfig = {
-  type: FileNameSegmentType;
-  customValue: string;
-};
-
-type FileNameSegmentOption = {
-  value: FileNameSegmentType;
-  label: string;
-};
 
 const DEFAULT_COLUMNS = 4;
 const DEFAULT_PADDING = 0;
@@ -146,7 +92,6 @@ const PREVIEW_BACKGROUND_PRESETS = [
   "#ffffff",
   "#000000",
 ] as const;
-
 const DEFAULT_PREFIX_SEGMENT: FileNameSegmentConfig = {
   type: "none",
   customValue: "",
@@ -179,8 +124,6 @@ const FRAME_EDIT_ASPECT_RATIO_MAP: Record<
   "9:16": { width: 9, height: 16 },
 };
 
-type SpriteEditorTab = "merge" | "split" | "frame-extract" | "frame-edit";
-type PreviewMode = "sprite" | "video";
 let lastSpriteEditorTab: SpriteEditorTab | null = null;
 
 export default function SpriteEditor() {
@@ -1661,6 +1604,456 @@ export default function SpriteEditor() {
                     : ""
               }`}
             >
+              <section className={`${styles.tabPanel} ${styles.mergePanel}`} role="tabpanel">
+                <div className={styles.canvasToolbar}>
+                  <div className={styles.controlsInline}>
+                    <label className={styles.field}>
+                      <span>{t("controls.columns")}</span>
+                      <input
+                        max={MAX_COLUMNS}
+                        min={MIN_COLUMNS}
+                        onBlur={(event) => commitColumnsInput(event.target.value)}
+                        onChange={(event) => {
+                          const nextValue = event.target.value;
+
+                          if (nextValue === "") {
+                            setColumnsInput("");
+                            return;
+                          }
+
+                          if (!/^\d+$/.test(nextValue)) {
+                            return;
+                          }
+
+                          setColumnsInput(nextValue);
+                          setColumns(clamp(Number(nextValue), MIN_COLUMNS, MAX_COLUMNS));
+                        }}
+                        type="number"
+                        value={columnsInput}
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>{t("controls.padding")}</span>
+                      <input
+                        max={MAX_PADDING}
+                        min={MIN_PADDING}
+                        onChange={(event) =>
+                          setPadding(
+                            clamp(Number(event.target.value), MIN_PADDING, MAX_PADDING),
+                          )
+                        }
+                        type="number"
+                        value={padding}
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>{t("controls.format")}</span>
+                      <SelectField
+                        ariaLabel={t("controls.format")}
+                        onChange={(event) =>
+                          setExportFormat(event.target.value as "png" | "jpeg" | "webp")
+                        }
+                        value={exportFormat}
+                      >
+                        <option value="png">PNG</option>
+                        <option value="jpeg">JPEG</option>
+                        <option value="webp">WebP</option>
+                      </SelectField>
+                    </label>
+                  </div>
+
+                  <div className={styles.toolbarActions}>
+                    <button
+                      className={styles.tertiaryAction}
+                      disabled={frames.length === 0}
+                      onClick={clearFrames}
+                      type="button"
+                    >
+                      {t("actions.clear")}
+                    </button>
+                    <button
+                      className={styles.exportButton}
+                      disabled={frames.length === 0}
+                      onClick={exportMergedImage}
+                      type="button"
+                    >
+                      {t("actions.export")}
+                    </button>
+                  </div>
+
+                  <div className={styles.fileNamingRow}>
+                    <div className={styles.fileNamingHeader}>
+                      <span className={styles.fileNamingLabel}>{t("naming.label")}</span>
+                      <span className={styles.fileNamingPreview}>
+                        {buildMergedExportFileName({
+                          exportFormat,
+                          frames,
+                          prefix: fileNamePrefix,
+                          middle: fileNameMiddle,
+                          suffix: fileNameSuffix,
+                        })}
+                        .{exportFormat === "jpeg" ? "jpg" : exportFormat}
+                      </span>
+                    </div>
+
+                    <div className={styles.fileNamingGrid}>
+                      <FileNameSegmentField
+                        config={fileNamePrefix}
+                        label={t("naming.prefix")}
+                        onChange={setFileNamePrefix}
+                        options={fileNamePrefixOptions}
+                        placeholder={t("naming.customPlaceholder")}
+                      />
+                      <FileNameSegmentField
+                        config={fileNameMiddle}
+                        label={t("naming.middle")}
+                        onChange={setFileNameMiddle}
+                        options={fileNameMiddleOptions}
+                        placeholder={t("naming.customPlaceholder")}
+                      />
+                      <FileNameSegmentField
+                        config={fileNameSuffix}
+                        label={t("naming.suffix")}
+                        onChange={setFileNameSuffix}
+                        options={fileNameSuffixOptions}
+                        placeholder={t("naming.customPlaceholder")}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.previewFrame}>
+                  <div
+                    ref={mergeViewportRef}
+                    className={`${styles.canvasViewport} ${
+                      frames.length === 0 ? styles.canvasViewportEmpty : styles.canvasViewportFilled
+                    }`}
+                    style={
+                      {
+                        backgroundColor: previewBackgroundColor,
+                      }
+                    }
+                  >
+                    {frames.length === 0 ? (
+                      <div className={styles.emptyPreview}>
+                        <p className={styles.emptyPreviewTitle}>{t("emptyPreview.title")}</p>
+                        <p className={styles.emptyPreviewCopy}>
+                          {t("emptyPreview.description")}
+                        </p>
+                        <label className={styles.emptyPreviewAction}>
+                          <input
+                            accept="image/*"
+                            className={styles.hiddenInput}
+                            multiple
+                            onChange={handleMergeInputChange}
+                            type="file"
+                            {...({ directory: "", webkitdirectory: "" } satisfies DirectoryInputProps)}
+                          />
+                          {t("emptyPreview.action")}
+                        </label>
+                      </div>
+                    ) : (
+                      <div className={styles.previewStageViewport}>
+                        <div
+                          className={`${styles.previewStagePanels} ${
+                            previewMode === "video" ? styles.previewStagePanelsShifted : ""
+                          }`}
+                        >
+                          <div className={styles.previewStagePanel}>
+                            <div
+                              className={styles.previewCanvasStage}
+                              style={
+                                {
+                                  width: `${previewCanvasWidth}px`,
+                                  height: `${previewCanvasHeight}px`,
+                                } satisfies React.CSSProperties
+                              }
+                            >
+                              <DndContext
+                                collisionDetection={closestCenter}
+                                onDragEnd={handlePreviewDragEnd}
+                                sensors={sensors}
+                              >
+                                <SortableContext
+                                  items={previewTiles.map((tile) => tile.id)}
+                                  strategy={rectSortingStrategy}
+                                >
+                                  <div
+                                    className={styles.previewGrid}
+                                    style={
+                                      {
+                                        "--preview-columns": String(columns),
+                                        "--preview-padding": `${padding}px`,
+                                        "--preview-cell-width": `${Math.max(
+                                          1,
+                                          Math.round(mergedMetrics.maxWidth * previewScale),
+                                        )}px`,
+                                        "--preview-cell-height": `${Math.max(
+                                          1,
+                                          Math.round(mergedMetrics.maxHeight * previewScale),
+                                        )}px`,
+                                        "--preview-canvas-width": `${previewCanvasWidth}px`,
+                                        "--preview-canvas-height": `${previewCanvasHeight}px`,
+                                      } as React.CSSProperties
+                                    }
+                                  >
+                                    {previewTiles.map((tile) => (
+                                      <SortablePreviewTile
+                                        height={tile.height}
+                                        id={tile.id}
+                                        imageUrl={tile.url}
+                                        key={tile.id}
+                                        name={tile.name}
+                                        onDelete={removeFrame}
+                                        width={tile.width}
+                                      />
+                                    ))}
+                                  </div>
+                                </SortableContext>
+                              </DndContext>
+                            </div>
+                          </div>
+
+                          <div className={styles.previewStagePanel}>
+                            {activeVideoFrame ? (
+                              <div
+                                className={styles.previewCanvasStage}
+                                style={
+                                  {
+                                    width: `${videoPreviewWidth}px`,
+                                    height: `${videoPreviewHeight}px`,
+                                  } satisfies React.CSSProperties
+                                }
+                              >
+                                <div className={styles.videoPreviewStage}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    alt={activeVideoFrame.name}
+                                    className={styles.videoPreviewImage}
+                                    draggable={false}
+                                    src={activeVideoFrame.url}
+                                    style={{
+                                      width: `${videoPreviewWidth}px`,
+                                      height: `${videoPreviewHeight}px`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {previewMode === "video" && activeVideoFrame ? (
+                  <div className={styles.videoPreviewPanel}>
+                    <div
+                      className={`${styles.videoPreviewCarouselWrap} ${
+                        isVideoPlaying ? "" : styles.videoPreviewCarouselWrapExpanded
+                      }`}
+                    >
+                      <ImageCarousel
+                        activeId={activeVideoFrame.id}
+                        ariaLabel="Sprite editor video frames"
+                        compact
+                        draggable
+                        imageHeight={92}
+                        imageWidth={92}
+                        items={previewTiles.map((tile, index) => ({
+                          id: tile.id,
+                          image: tile.url,
+                          subtitle: `${index + 1}/${frames.length}`,
+                          title: tile.name,
+                        }))}
+                        onRemove={(id) => removeFrame(String(id))}
+                        onReorder={reorderFramesByCarousel}
+                        onSelect={(index) => {
+                          goToVideoFrame(index);
+                          setIsVideoPlaying(false);
+                        }}
+                        removableByDrag
+                        removeZoneLabel={t("actions.delete")}
+                      />
+                    </div>
+                    <div className={styles.videoPreviewControls}>
+                      <button
+                        aria-label="Previous frame"
+                        className={styles.videoPreviewControl}
+                        onClick={() => stepVideoFrame(-1)}
+                        type="button"
+                      >
+                        <FaStepBackward aria-hidden="true" />
+                      </button>
+                      <button
+                        aria-label={isVideoPlaying ? "Pause" : "Play"}
+                        className={styles.videoPreviewControl}
+                        onClick={toggleVideoPlayback}
+                        type="button"
+                      >
+                        {isVideoPlaying ? (
+                          <FaPause aria-hidden="true" />
+                        ) : (
+                          <FaPlay aria-hidden="true" />
+                        )}
+                      </button>
+                      <button
+                        aria-label="Next frame"
+                        className={styles.videoPreviewControl}
+                        onClick={() => stepVideoFrame(1)}
+                        type="button"
+                      >
+                        <FaStepForward aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className={styles.zoomBar}>
+                  <div className={styles.zoomControls}>
+                    <div className={styles.previewControlsColumn}>
+                      <div className={styles.previewModeRow}>
+                        <div
+                          aria-label={t("preview.mode")}
+                          className={styles.previewModeSwitch}
+                          role="tablist"
+                        >
+                          <button
+                            className={`${styles.previewModeButton} ${
+                              previewMode === "sprite" ? styles.previewModeButtonActive : ""
+                            }`}
+                            onClick={() => activatePreviewMode("sprite")}
+                            aria-label={t("preview.spriteMode")}
+                            type="button"
+                          >
+                            <BsGrid3X3GapFill aria-hidden="true" />
+                          </button>
+                          <button
+                            className={`${styles.previewModeButton} ${
+                              previewMode === "video" ? styles.previewModeButtonActive : ""
+                            }`}
+                            onClick={() => activatePreviewMode("video")}
+                            aria-label={t("preview.videoMode")}
+                            type="button"
+                          >
+                            <BsCameraVideoFill aria-hidden="true" />
+                          </button>
+                        </div>
+                        <div className={styles.previewModeFieldWrap}>
+                          {previewMode === "video" ? (
+                            <>
+                              <label className={styles.previewFpsField} htmlFor="preview-fps">
+                                <span>{t("preview.fps")}</span>
+                                <input
+                                  id="preview-fps"
+                                  max={120}
+                                  min={1}
+                                  onBlur={(event) => {
+                                    const trimmedValue = event.target.value.trim();
+                                    const nextValue =
+                                      trimmedValue === ""
+                                        ? 24
+                                        : clamp(Number(trimmedValue), 1, 120);
+                                    setVideoFps(nextValue);
+                                    setVideoFpsInput(String(nextValue));
+                                  }}
+                                  onChange={(event) => {
+                                    const nextValue = event.target.value;
+                                    if (nextValue === "") {
+                                      setVideoFpsInput("");
+                                      return;
+                                    }
+
+                                    if (!/^\d+$/.test(nextValue)) {
+                                      return;
+                                    }
+
+                                    setVideoFpsInput(nextValue);
+                                    setVideoFps(clamp(Number(nextValue), 1, 120));
+                                  }}
+                                  type="number"
+                                  value={videoFpsInput}
+                                />
+                              </label>
+                              <input
+                                className={styles.zoomSlider}
+                                id="preview-fps-slider"
+                                max={120}
+                                min={1}
+                                onChange={(event) => {
+                                  const nextValue = clamp(Number(event.target.value), 1, 120);
+                                  setVideoFps(nextValue);
+                                  setVideoFpsInput(String(nextValue));
+                                }}
+                                type="range"
+                                value={videoFps}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <label className={styles.zoomLabel} htmlFor="preview-zoom">
+                                <span>{t("preview.zoom")}</span>
+                                <span>{previewZoom}%</span>
+                              </label>
+                              <input
+                                className={styles.zoomSlider}
+                                id="preview-zoom"
+                                max={200}
+                                min={40}
+                                onChange={(event) => setPreviewZoom(Number(event.target.value))}
+                                type="range"
+                                value={previewZoom}
+                              />
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.infoPanel}>
+                        <p className={styles.panelEyebrow}>{t("preview.eyebrow")}</p>
+                        <div className={styles.infoGrid}>
+                          <InfoCard
+                            label={t("preview.maxCell")}
+                            value={
+                              frames.length > 0
+                                ? `${mergedMetrics.maxWidth} x ${mergedMetrics.maxHeight}`
+                                : "-"
+                            }
+                          />
+                          <InfoCard
+                            label={t("preview.rows")}
+                            value={String(mergedMetrics.rows || 0)}
+                          />
+                          <InfoCard
+                            label={t("preview.canvasSize")}
+                            value={
+                              frames.length > 0
+                                ? `${mergedMetrics.canvasWidth} x ${mergedMetrics.canvasHeight}`
+                                : "-"
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {activeTab === "merge" ? (
+                      <PreviewBackgroundColorPanel
+                        applyPreviewBackgroundColor={applyPreviewBackgroundColor}
+                        presets={PREVIEW_BACKGROUND_PRESETS}
+                        previewBackgroundColor={previewBackgroundColor}
+                        previewPickerColor={previewPickerColor}
+                        transparentValue={TRANSPARENT_PREVIEW_BACKGROUND}
+                        t={t}
+                      />
+                    ) : null}
+                  </div>
+                </div>
+
+                <canvas aria-hidden="true" className={styles.hiddenCanvas} ref={canvasRef} />
+              </section>
+
               <section className={`${styles.tabPanel} ${styles.splitPanel}`} role="tabpanel">
                 <div className={styles.splitWorkspace}>
                   <div className={styles.canvasToolbar}>
@@ -2329,462 +2722,16 @@ export default function SpriteEditor() {
                       {activeTab === "split" ? (
                         <PreviewBackgroundColorPanel
                           applyPreviewBackgroundColor={applyPreviewBackgroundColor}
+                          presets={PREVIEW_BACKGROUND_PRESETS}
                           previewBackgroundColor={previewBackgroundColor}
                           previewPickerColor={previewPickerColor}
+                          transparentValue={TRANSPARENT_PREVIEW_BACKGROUND}
                           t={t}
                         />
                       ) : null}
                     </div>
                   </div>
                 </div>
-              </section>
-
-              <section className={`${styles.tabPanel} ${styles.mergePanel}`} role="tabpanel">
-                <div className={styles.canvasToolbar}>
-                  <div className={styles.controlsInline}>
-                    <label className={styles.field}>
-                      <span>{t("controls.columns")}</span>
-                      <input
-                        max={MAX_COLUMNS}
-                        min={MIN_COLUMNS}
-                        onBlur={(event) => commitColumnsInput(event.target.value)}
-                        onChange={(event) => {
-                          const nextValue = event.target.value;
-
-                          if (nextValue === "") {
-                            setColumnsInput("");
-                            return;
-                          }
-
-                          if (!/^\d+$/.test(nextValue)) {
-                            return;
-                          }
-
-                          setColumnsInput(nextValue);
-                          setColumns(clamp(Number(nextValue), MIN_COLUMNS, MAX_COLUMNS));
-                        }}
-                        type="number"
-                        value={columnsInput}
-                      />
-                    </label>
-
-                    <label className={styles.field}>
-                      <span>{t("controls.padding")}</span>
-                      <input
-                        max={MAX_PADDING}
-                        min={MIN_PADDING}
-                        onChange={(event) =>
-                          setPadding(
-                            clamp(Number(event.target.value), MIN_PADDING, MAX_PADDING),
-                          )
-                        }
-                        type="number"
-                        value={padding}
-                      />
-                    </label>
-
-                    <label className={styles.field}>
-                      <span>{t("controls.format")}</span>
-                      <SelectField
-                        ariaLabel={t("controls.format")}
-                        onChange={(event) =>
-                          setExportFormat(event.target.value as "png" | "jpeg" | "webp")
-                        }
-                        value={exportFormat}
-                      >
-                        <option value="png">PNG</option>
-                        <option value="jpeg">JPEG</option>
-                        <option value="webp">WebP</option>
-                      </SelectField>
-                    </label>
-                  </div>
-
-                  <div className={styles.toolbarActions}>
-                    <button
-                      className={styles.tertiaryAction}
-                      disabled={frames.length === 0}
-                      onClick={clearFrames}
-                      type="button"
-                    >
-                      {t("actions.clear")}
-                    </button>
-                    <button
-                      className={styles.exportButton}
-                      disabled={frames.length === 0}
-                      onClick={exportMergedImage}
-                      type="button"
-                    >
-                      {t("actions.export")}
-                    </button>
-                  </div>
-
-                  <div className={styles.fileNamingRow}>
-                    <div className={styles.fileNamingHeader}>
-                      <span className={styles.fileNamingLabel}>{t("naming.label")}</span>
-                      <span className={styles.fileNamingPreview}>
-                        {buildMergedExportFileName({
-                          exportFormat,
-                          frames,
-                          prefix: fileNamePrefix,
-                          middle: fileNameMiddle,
-                          suffix: fileNameSuffix,
-                        })}
-                        .{exportFormat === "jpeg" ? "jpg" : exportFormat}
-                      </span>
-                    </div>
-
-                    <div className={styles.fileNamingGrid}>
-                      <FileNameSegmentField
-                        config={fileNamePrefix}
-                        label={t("naming.prefix")}
-                        onChange={setFileNamePrefix}
-                        options={fileNamePrefixOptions}
-                        placeholder={t("naming.customPlaceholder")}
-                      />
-                      <FileNameSegmentField
-                        config={fileNameMiddle}
-                        label={t("naming.middle")}
-                        onChange={setFileNameMiddle}
-                        options={fileNameMiddleOptions}
-                        placeholder={t("naming.customPlaceholder")}
-                      />
-                      <FileNameSegmentField
-                        config={fileNameSuffix}
-                        label={t("naming.suffix")}
-                        onChange={setFileNameSuffix}
-                        options={fileNameSuffixOptions}
-                        placeholder={t("naming.customPlaceholder")}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.previewFrame}>
-                  <div
-                    ref={mergeViewportRef}
-                    className={`${styles.canvasViewport} ${
-                      frames.length === 0 ? styles.canvasViewportEmpty : styles.canvasViewportFilled
-                    }`}
-                    style={
-                      {
-                        backgroundColor: previewBackgroundColor,
-                      }
-                    }
-                  >
-                    {frames.length === 0 ? (
-                      <div className={styles.emptyPreview}>
-                        <p className={styles.emptyPreviewTitle}>{t("emptyPreview.title")}</p>
-                        <p className={styles.emptyPreviewCopy}>
-                          {t("emptyPreview.description")}
-                        </p>
-                        <label className={styles.emptyPreviewAction}>
-                          <input
-                            accept="image/*"
-                            className={styles.hiddenInput}
-                            multiple
-                            onChange={handleMergeInputChange}
-                            type="file"
-                            {...({ directory: "", webkitdirectory: "" } satisfies DirectoryInputProps)}
-                          />
-                          {t("emptyPreview.action")}
-                        </label>
-                      </div>
-                    ) : (
-                      <div className={styles.previewStageViewport}>
-                        <div
-                          className={`${styles.previewStagePanels} ${
-                            previewMode === "video" ? styles.previewStagePanelsShifted : ""
-                          }`}
-                        >
-                          <div className={styles.previewStagePanel}>
-                            <div
-                              className={styles.previewCanvasStage}
-                              style={
-                                {
-                                  width: `${previewCanvasWidth}px`,
-                                  height: `${previewCanvasHeight}px`,
-                                } satisfies React.CSSProperties
-                              }
-                            >
-                              <DndContext
-                                collisionDetection={closestCenter}
-                                onDragEnd={handlePreviewDragEnd}
-                                sensors={sensors}
-                              >
-                                <SortableContext
-                                  items={previewTiles.map((tile) => tile.id)}
-                                  strategy={rectSortingStrategy}
-                                >
-                                  <div
-                                    className={styles.previewGrid}
-                                    style={
-                                      {
-                                        "--preview-columns": String(columns),
-                                        "--preview-padding": `${padding}px`,
-                                        "--preview-cell-width": `${Math.max(
-                                          1,
-                                          Math.round(mergedMetrics.maxWidth * previewScale),
-                                        )}px`,
-                                        "--preview-cell-height": `${Math.max(
-                                          1,
-                                          Math.round(mergedMetrics.maxHeight * previewScale),
-                                        )}px`,
-                                        "--preview-canvas-width": `${previewCanvasWidth}px`,
-                                        "--preview-canvas-height": `${previewCanvasHeight}px`,
-                                      } as React.CSSProperties
-                                    }
-                                  >
-                                    {previewTiles.map((tile) => (
-                                      <SortablePreviewTile
-                                        height={tile.height}
-                                        id={tile.id}
-                                        imageUrl={tile.url}
-                                        key={tile.id}
-                                        name={tile.name}
-                                        onDelete={removeFrame}
-                                        width={tile.width}
-                                      />
-                                    ))}
-                                  </div>
-                                </SortableContext>
-                              </DndContext>
-                            </div>
-                          </div>
-
-                          <div className={styles.previewStagePanel}>
-                            {activeVideoFrame ? (
-                              <div
-                                className={styles.previewCanvasStage}
-                                style={
-                                  {
-                                    width: `${videoPreviewWidth}px`,
-                                    height: `${videoPreviewHeight}px`,
-                                  } satisfies React.CSSProperties
-                                }
-                              >
-                                <div className={styles.videoPreviewStage}>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    alt={activeVideoFrame.name}
-                                    className={styles.videoPreviewImage}
-                                    draggable={false}
-                                    src={activeVideoFrame.url}
-                                    style={{
-                                      width: `${videoPreviewWidth}px`,
-                                      height: `${videoPreviewHeight}px`,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {previewMode === "video" && activeVideoFrame ? (
-                  <div className={styles.videoPreviewPanel}>
-                    <div
-                      className={`${styles.videoPreviewCarouselWrap} ${
-                        isVideoPlaying ? "" : styles.videoPreviewCarouselWrapExpanded
-                      }`}
-                    >
-                      <ImageCarousel
-                        activeId={activeVideoFrame.id}
-                        ariaLabel="Sprite editor video frames"
-                        compact
-                        draggable
-                        imageHeight={92}
-                        imageWidth={92}
-                        items={previewTiles.map((tile, index) => ({
-                          id: tile.id,
-                          image: tile.url,
-                          subtitle: `${index + 1}/${frames.length}`,
-                          title: tile.name,
-                        }))}
-                        onRemove={(id) => removeFrame(String(id))}
-                        onReorder={reorderFramesByCarousel}
-                        onSelect={(index) => {
-                          goToVideoFrame(index);
-                          setIsVideoPlaying(false);
-                        }}
-                        removableByDrag
-                        removeZoneLabel={t("actions.delete")}
-                      />
-                    </div>
-                    <div className={styles.videoPreviewControls}>
-                      <button
-                        aria-label="Previous frame"
-                        className={styles.videoPreviewControl}
-                        onClick={() => stepVideoFrame(-1)}
-                        type="button"
-                      >
-                        <FaStepBackward aria-hidden="true" />
-                      </button>
-                      <button
-                        aria-label={isVideoPlaying ? "Pause" : "Play"}
-                        className={styles.videoPreviewControl}
-                        onClick={toggleVideoPlayback}
-                        type="button"
-                      >
-                        {isVideoPlaying ? (
-                          <FaPause aria-hidden="true" />
-                        ) : (
-                          <FaPlay aria-hidden="true" />
-                        )}
-                      </button>
-                      <button
-                        aria-label="Next frame"
-                        className={styles.videoPreviewControl}
-                        onClick={() => stepVideoFrame(1)}
-                        type="button"
-                      >
-                        <FaStepForward aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className={styles.zoomBar}>
-                  <div className={styles.zoomControls}>
-                    <div className={styles.previewControlsColumn}>
-                      <div className={styles.previewModeRow}>
-                        <div
-                          aria-label={t("preview.mode")}
-                          className={styles.previewModeSwitch}
-                          role="tablist"
-                        >
-                          <button
-                            className={`${styles.previewModeButton} ${
-                              previewMode === "sprite" ? styles.previewModeButtonActive : ""
-                            }`}
-                            onClick={() => activatePreviewMode("sprite")}
-                            aria-label={t("preview.spriteMode")}
-                            type="button"
-                          >
-                            <BsGrid3X3GapFill aria-hidden="true" />
-                          </button>
-                          <button
-                            className={`${styles.previewModeButton} ${
-                              previewMode === "video" ? styles.previewModeButtonActive : ""
-                            }`}
-                            onClick={() => activatePreviewMode("video")}
-                            aria-label={t("preview.videoMode")}
-                            type="button"
-                          >
-                            <BsCameraVideoFill aria-hidden="true" />
-                          </button>
-                        </div>
-                        <div className={styles.previewModeFieldWrap}>
-                          {previewMode === "video" ? (
-                            <>
-                              <label className={styles.previewFpsField} htmlFor="preview-fps">
-                                <span>{t("preview.fps")}</span>
-                                <input
-                                  id="preview-fps"
-                                  max={120}
-                                  min={1}
-                                  onBlur={(event) => {
-                                    const trimmedValue = event.target.value.trim();
-                                    const nextValue =
-                                      trimmedValue === ""
-                                        ? 24
-                                        : clamp(Number(trimmedValue), 1, 120);
-                                    setVideoFps(nextValue);
-                                    setVideoFpsInput(String(nextValue));
-                                  }}
-                                  onChange={(event) => {
-                                    const nextValue = event.target.value;
-                                    if (nextValue === "") {
-                                      setVideoFpsInput("");
-                                      return;
-                                    }
-
-                                    if (!/^\d+$/.test(nextValue)) {
-                                      return;
-                                    }
-
-                                    setVideoFpsInput(nextValue);
-                                    setVideoFps(clamp(Number(nextValue), 1, 120));
-                                  }}
-                                  type="number"
-                                  value={videoFpsInput}
-                                />
-                              </label>
-                              <input
-                                className={styles.zoomSlider}
-                                id="preview-fps-slider"
-                                max={120}
-                                min={1}
-                                onChange={(event) => {
-                                  const nextValue = clamp(Number(event.target.value), 1, 120);
-                                  setVideoFps(nextValue);
-                                  setVideoFpsInput(String(nextValue));
-                                }}
-                                type="range"
-                                value={videoFps}
-                              />
-                            </>
-                          ) : (
-                            <>
-                              <label className={styles.zoomLabel} htmlFor="preview-zoom">
-                                <span>{t("preview.zoom")}</span>
-                                <span>{previewZoom}%</span>
-                              </label>
-                              <input
-                                className={styles.zoomSlider}
-                                id="preview-zoom"
-                                max={200}
-                                min={40}
-                                onChange={(event) => setPreviewZoom(Number(event.target.value))}
-                                type="range"
-                                value={previewZoom}
-                              />
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div className={styles.infoPanel}>
-                        <p className={styles.panelEyebrow}>{t("preview.eyebrow")}</p>
-                        <div className={styles.infoGrid}>
-                          <InfoCard
-                            label={t("preview.maxCell")}
-                            value={
-                              frames.length > 0
-                                ? `${mergedMetrics.maxWidth} x ${mergedMetrics.maxHeight}`
-                                : "-"
-                            }
-                          />
-                          <InfoCard
-                            label={t("preview.rows")}
-                            value={String(mergedMetrics.rows || 0)}
-                          />
-                          <InfoCard
-                            label={t("preview.canvasSize")}
-                            value={
-                              frames.length > 0
-                                ? `${mergedMetrics.canvasWidth} x ${mergedMetrics.canvasHeight}`
-                                : "-"
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {activeTab === "merge" ? (
-                      <PreviewBackgroundColorPanel
-                        applyPreviewBackgroundColor={applyPreviewBackgroundColor}
-                        previewBackgroundColor={previewBackgroundColor}
-                        previewPickerColor={previewPickerColor}
-                        t={t}
-                      />
-                    ) : null}
-                  </div>
-                </div>
-
-                <canvas aria-hidden="true" className={styles.hiddenCanvas} ref={canvasRef} />
               </section>
 
               <section className={`${styles.tabPanel} ${styles.mergePanel}`} role="tabpanel">
@@ -2941,8 +2888,10 @@ export default function SpriteEditor() {
                       <div className={styles.frameEditFillPanelWrap}>
                         <PreviewBackgroundColorPanel
                           applyPreviewBackgroundColor={applyFrameEditFillColor}
+                          presets={PREVIEW_BACKGROUND_PRESETS}
                           previewBackgroundColor={frameEditFillColor}
                           previewPickerColor={frameEditFillPickerColor}
+                          transparentValue={TRANSPARENT_PREVIEW_BACKGROUND}
                           t={t}
                         />
                       </div>
@@ -3319,8 +3268,10 @@ export default function SpriteEditor() {
                     {activeTab === "frame-edit" ? (
                       <PreviewBackgroundColorPanel
                         applyPreviewBackgroundColor={applyPreviewBackgroundColor}
+                        presets={PREVIEW_BACKGROUND_PRESETS}
                         previewBackgroundColor={previewBackgroundColor}
                         previewPickerColor={previewPickerColor}
+                        transparentValue={TRANSPARENT_PREVIEW_BACKGROUND}
                         t={t}
                       />
                     ) : null}
@@ -3332,265 +3283,6 @@ export default function SpriteEditor() {
         </section>
       </section>
     </main>
-  );
-}
-
-function FileNameSegmentField({
-  label,
-  config,
-  options,
-  placeholder,
-  hideLabel = false,
-  onChange,
-}: {
-  label: string;
-  config: FileNameSegmentConfig;
-  options: FileNameSegmentOption[];
-  placeholder: string;
-  hideLabel?: boolean;
-  onChange: (nextConfig: FileNameSegmentConfig) => void;
-}) {
-  const activeOption = options.find((option) => option.value === config.type) ?? options[0];
-
-  return (
-    <label className={styles.fileNameField}>
-      {hideLabel ? null : <span>{label}</span>}
-      <div className={styles.fileNameFieldControl}>
-        {config.type === "custom" ? (
-          <input
-            className={styles.fileNameCustomInput}
-            onChange={(event) =>
-              onChange({
-                ...config,
-                customValue: event.target.value,
-              })
-            }
-            placeholder={placeholder}
-            type="text"
-            value={config.customValue}
-          />
-        ) : (
-          <>
-            <div className={styles.fileNameSelectionValue}>{activeOption?.label}</div>
-            <select
-              aria-label={label}
-              className={styles.fileNameFieldSelectFull}
-              onChange={(event) =>
-                onChange({
-                  type: event.target.value as FileNameSegmentType,
-                  customValue:
-                    event.target.value === "custom" ? config.customValue : config.customValue,
-                })
-              }
-              value={config.type}
-            >
-              {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-
-        <div className={styles.fileNameFieldSelectWrap}>
-          <select
-            aria-label={label}
-            className={styles.fileNameFieldSelect}
-            onChange={(event) =>
-              onChange({
-                type: event.target.value as FileNameSegmentType,
-                customValue:
-                  event.target.value === "custom" ? config.customValue : config.customValue,
-              })
-            }
-            value={config.type}
-          >
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <FaChevronDown aria-hidden="true" className={styles.fileNameFieldChevron} />
-        </div>
-      </div>
-    </label>
-  );
-}
-
-function SelectField({
-  ariaLabel,
-  children,
-  className,
-  onChange,
-  value,
-}: {
-  ariaLabel: string;
-  children: React.ReactNode;
-  className?: string;
-  onChange: React.ChangeEventHandler<HTMLSelectElement>;
-  value: string;
-}) {
-  return (
-    <div className={`${styles.selectField} ${className ?? ""}`.trim()}>
-      <select
-        aria-label={ariaLabel}
-        className={styles.selectFieldNative}
-        onChange={onChange}
-        value={value}
-      >
-        {children}
-      </select>
-      <FaChevronDown aria-hidden="true" className={styles.selectFieldChevron} />
-    </div>
-  );
-}
-
-function PreviewBackgroundColorPanel({
-  applyPreviewBackgroundColor,
-  previewBackgroundColor,
-  previewPickerColor,
-  t,
-}: {
-  applyPreviewBackgroundColor: (color: string) => void;
-  previewBackgroundColor: string;
-  previewPickerColor: string;
-  t: ReturnType<typeof useTranslations<"spriteEditor">>;
-}) {
-  return (
-    <div className={styles.previewColorPanel}>
-      <div className={styles.previewColorHeader}>
-        <span>{t("preview.background")}</span>
-        <span
-          aria-hidden="true"
-          className={`${styles.previewColorCurrent} ${
-            previewBackgroundColor === TRANSPARENT_PREVIEW_BACKGROUND
-              ? styles.previewColorTransparent
-              : ""
-          }`}
-          style={
-            previewBackgroundColor === TRANSPARENT_PREVIEW_BACKGROUND
-              ? undefined
-              : { backgroundColor: previewBackgroundColor }
-          }
-        />
-      </div>
-
-      <div className={styles.previewColorPresets}>
-        {PREVIEW_BACKGROUND_PRESETS.map((color) => (
-          <button
-            aria-label={t("preview.backgroundPreset", {
-              color:
-                color === TRANSPARENT_PREVIEW_BACKGROUND
-                  ? t("preview.transparent")
-                  : color,
-            })}
-            className={`${styles.previewColorSwatch} ${
-              previewBackgroundColor.toLowerCase() === color.toLowerCase()
-                ? styles.previewColorSwatchActive
-                : ""
-            } ${
-              color === TRANSPARENT_PREVIEW_BACKGROUND
-                ? styles.previewColorTransparent
-                : ""
-            }`}
-            key={color}
-            onClick={() => applyPreviewBackgroundColor(color)}
-            style={
-              color === TRANSPARENT_PREVIEW_BACKGROUND
-                ? undefined
-                : { backgroundColor: color }
-            }
-            type="button"
-          />
-        ))}
-      </div>
-
-      <div className={styles.previewColorPicker}>
-        <HexAlphaColorPicker
-          color={previewPickerColor}
-          onChange={(color) => applyPreviewBackgroundColor(color)}
-        />
-      </div>
-    </div>
-  );
-}
-
-type SortablePreviewTileProps = {
-  id: string;
-  imageUrl: string;
-  name: string;
-  onDelete: (id: string) => void;
-  width: number;
-  height: number;
-};
-
-function SortablePreviewTile({
-  id,
-  imageUrl,
-  name,
-  onDelete,
-  width,
-  height,
-}: SortablePreviewTileProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id });
-
-  return (
-    <div
-      className={`${styles.previewTile} ${isDragging ? styles.previewTileDragging : ""}`}
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: isDragging ? "none" : transition,
-      }}
-      {...attributes}
-      {...listeners}
-    >
-      <div className={styles.previewTileInner}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          alt={name}
-          className={styles.previewTileImage}
-          draggable={false}
-          height={height}
-          src={imageUrl}
-          width={width}
-        />
-        <div className={styles.previewTileOverlay}>
-          <button
-            aria-label={`Delete ${name}`}
-            className={styles.previewTileDelete}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onDelete(id);
-            }}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-            type="button"
-          >
-            <FaTrashAlt aria-hidden="true" />
-          </button>
-          <div className={styles.previewTileName}>{name}</div>
-          <div className={styles.previewTileMeta}>
-            {width} x {height}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InfoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.infoCard}>
-      <div className={styles.infoLabel}>{label}</div>
-      <div className={styles.infoValue}>{value}</div>
-    </div>
   );
 }
 

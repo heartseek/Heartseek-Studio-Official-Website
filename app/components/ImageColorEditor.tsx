@@ -267,7 +267,7 @@ export default function ImageColorEditor() {
     setImages((current) => {
       const currentMap = new Map(current.map((image) => [image.id, image]));
       return nextItems
-        .map((item) => currentMap.get(item.id))
+        .map((item) => currentMap.get(String(item.id)))
         .filter((image): image is ImportedImage => image !== undefined);
     });
   }
